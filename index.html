@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dijital Sakız Falı</title>
+    <!-- Tailwind CSS'i yükle (Harika bir responsive tasarım için) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Ana tasarım ve font */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e0f2f1; /* Açık turkuaz arka plan */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Bulut Animasyonları */
+        .cloud {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: moveClouds linear infinite;
+            filter: blur(5px);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        .cloud1 { width: 150px; height: 50px; top: 10%; left: -100px; animation-duration: 40s; }
+        .cloud1::before, .cloud1::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
+        .cloud1::before { width: 80px; height: 80px; top: -30px; left: 30px; }
+        .cloud1::after { width: 100px; height: 100px; top: -50px; left: 80px; }
+
+        .cloud2 { width: 100px; height: 35px; top: 35%; right: -80px; animation-duration: 50s; }
+        .cloud2::before { content: ''; position: absolute; background: #fff; border-radius: 50%; width: 60px; height: 60px; top: -20px; left: 10px; }
+
+        .cloud3 { width: 200px; height: 70px; bottom: 15%; left: -150px; animation-duration: 65s; }
+        .cloud3::before, .cloud3::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
+        .cloud3::before { width: 120px; height: 120px; top: -40px; left: 20px; }
+        .cloud3::after { width: 90px; height: 90px; top: -50px; right: 10px; }
+
+        @keyframes moveClouds {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(100vw + 300px)); } /* Ekran genişliğinin ötesine taşı */
+        }
+
+        /* Başlık stili */
+        h1 {
+            z-index: 10;
+            color: #3182CE; /* Mavi ton */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Kart stilleri */
+        .card {
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 4px, 6px, 0.05);
+            padding: 2rem;
+            z-index: 20;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        /* Buton stilleri */
+        button {
+            transition: all 0.3s ease;
+            transform: scale(1);
+        }
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* GİZLENEN FAL İÇİN YENİ STİL */
+        .blurred {
+            filter: blur(5px) grayscale(80%); /* Bulanıklık ve gri ton artırıldı */
+            transition: filter 0.3s ease;
+            cursor: pointer;
+            border-left-color: #9ca3af !important; /* Gri çizgi */
+            background-color: #f7f7f7; /* Açık gri arka plan */
+        }
+        /* Mouse ile üzerine gelindiğinde netleştirme */
+        .blurred:hover {
+            filter: blur(0) grayscale(0); 
+        }
+        /* Bulanık falların butonları görünür kalmalı */
+        .blurred button {
+            filter: none;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Bulutlar (arka plan animasyonu) -->
+    <div class="cloud cloud1"></div>
+    <div class="cloud cloud2"></div>
+    <div class="cloud cloud3"></div>
+
+    
+    <!-- Başlık (Sarı arka plan kaldırıldı) -->
+    <h1 class="text-4xl font-bold mb-8 z-10 text-teal-600 text-shadow-lg">
+        Sunanın Falları
+    </h1>
+
+    <!-- Kullanıcı girişi -->
+    <div id="login" class="card flex flex-col space-y-4">
+        <!-- Giriş Metni -->
+        <p class="text-lg font-semibold text-center text-gray-700">Falınızı Görmek İçin Giriş Yapın</p>
+        <input type="text" id="username" placeholder="Kullanıcı adınızı girin"
+               class="p-3 border-2 border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150"
+               maxlength="20">
+        <button onclick="login()"
+                class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 rounded-xl shadow-lg">
+            Giriş Yap
+        </button>
+        <p class="text-sm text-red-500 text-center hidden" id="login-error-message">Lütfen geçerli bir kullanıcı adı giriniz.</p>
+    </div>
+
+    <!-- Ana ekran -->
+    <div id="main" class="card mt-6 relative" style="display:none;">
+        
+        <!-- Geri Dön Butonu (Sağ Üst Köşe) -->
+        <button onclick="logout()"
+                class="absolute top-2 right-2 text-sm text-teal-600 hover:text-teal-800 font-semibold p-2 rounded-lg transition duration-150 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Geri Dön
+        </button>
+        <!-- /Geri Dön Butonu -->
+
+        <p id="greeting" class="text-xl font-semibold mb-4 text-center text-teal-600"></p>
+
+        <button onclick="spinFal()" id="spin-button"
+                class="w-full bg-pink-500 hover:bg-pink-600 text-white font-extrabold py-4 rounded-xl text-2xl shadow-xl transition transform hover:scale-[1.02]">
+            Fal Çek!
+        </button>
+        
+        <!-- Fal sonucu gösterim alanı -->
+        <p id="result" class="mt-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-lg text-lg italic text-center min-h-[4rem] flex items-center justify-center">
+            Falınız Burada Gözükecek...
+        </p>
+        
+        <!-- Genel Fal Akışı Başlığı -->
+        <h3 class="text-2xl font-bold mt-8 mb-4 border-b pb-2 text-teal-700">Genel Fal Akışı</h3>
+        
+        <!-- Geçmiş listesi -->
+        <div id="history-container" class="max-h-64 overflow-y-auto">
+            <ul id="history" class="space-y-2">
+                <li class="text-gray-500 text-sm text-center">Yükleniyor...</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- JavaScript bağlantısı -->
+    <script type="module">
+        // Firebase Modüllerini İçe Aktar
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // deleteDoc fonksiyonu eklenmiştir
+        import { getFirestore, doc, setDoc, onSnapshot, collection, query, addDoc, serverTimestamp, setLogLevel, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase ve Uygulama Durumu Değişkenleri
+        let db;
+        let auth;
+        let userId = null;
+        let userName = "";
+        let hiddenFortuneIds = new Set(); // Gizlenen fal kimliklerini tutmak için Set kullanılır
+
+        // UI Elementleri
+        const loginDiv = document.getElementById('login');
+        const mainDiv = document.getElementById('main');
+        const usernameInput = document.getElementById('username');
+        const greetingElement = document.getElementById('greeting');
+        const resultElement = document.getElementById('result');
+        const historyList = document.getElementById('history');
+        const loginErrorMsg = document.getElementById('login-error-message');
+        const spinButton = document.getElementById('spin-button');
+        
+        // Sabit Fal Metinleri (Sakız Falı Geleneklerine Uygun)
+        // Hedeflenen 50 fal metni buraya ekleniyor
+        const fortunes = [
+            "Aşkın etmiş onu şair\nHer gün yazar bir şiir\nSensin ilham perisi\nTüm satırlar sana dair",
+            "Fazla şey beklemez senden\nİster hayatında çekidüzen\nEvliliktir bunun sonu\nSeversen onu gönülden",
+            "Boynunda var bir kolye\nİki resim bağlı zincire\nBiri o, diğeri sen\nAçar bakar her saniye",
+            "Atmışsın ona bir bakış\nGözlerine tutulmuş kalmış\nKendini bulmuş o anda\nAşkın ona pek yaramış",
+            "Senden bekler hareket\nEdemez konuşmaya cesaret\nSen bir adım atsan ona\nO on adım gelecek",
+            "Bir görünüp bir kayboluyor\nOnu yakalamak zor mu zor\nGöremeyince üzülüyorsun\nSenin de yüreğine düşmüş kor",
+            "Çıkar sık sık şehir dışına\nBir gün gelecek senin oraya\nKopamayacak sonra senden\nYerleşecek evinin yanına",
+            "Her gün bakar aynaya\nGüzel görünmek için sana\nBeğendirecek kendini\nGelirseniz yan yana",
+            "Bir ev döşemiş zevki süper\nBazen pop bazen caz dinler\nHayvanlara sevgisinden\nOkumuş olmuş veteriner",
+            "Onunla tez geçiyor saat\nKonuşmaya kalmıyor fırsat\nSana söyleyecekleri var\nBu kez zamanı sen ayır.",
+            "Sevdiğin biraz duygusal\nAşkınız güzel bir masal\nNazik davran aman ona\nKalbi sanki kristal",
+            "Aranızda var bir resmiyet\nAma değişecek bu vaziyet\nÇok uzun sürmeyecek\nOluşacak samimiyet",
+            "Suya muhtaçtır her yonca\nAnlarsın yalnız kalınca\nTatsızlıklar atlatılır\nBir taraf alttan alınca",
+            "En önemli vasfı sabır\nDur durak bilmeden çalışır\nBir ikinci lig kulübünde\nFutbol oynuyor beş yıldır",
+            "Seni senden çok sever\nİste dünyayı ayağına serer\nSeni güzel yaşatacak\nVermeyecek hiç keder",
+            "Aşkta olmaz gurur\nO sana sen ona mecbur\nHatasını affettiğinde\nBulacaksınız birlikte huzur",
+            "Sabrın sonu selamet\nBu işte var keramet\nHemen pes etmezsen\nKuracaksınız muhabbet",
+            "Siz tanışalı üç gün olmuş\nKalbine bir sıcaklık dolmuş\nTekrar görüşür müyiz diye\nZavallım sararıp solmuş",
+            "Dinliyor kalbinin sesini\nKapatıp güzel gözlerini\nDüşünüyor saatlerce\nSensin en büyük hayali",
+            "Aşk başlıyor yeni yeni\nO, tanımak istiyor seni\nSize neler getirecek\nBu güzel aşk serüveni",
+            "Sevda yolunda yürü dimdik\nKolaydır nişan, evlilik\nO gerçekten doğru seçim\nBizden sana kocaman tebrik",
+            "Huyunuz suyunuz aynı\nEtmez hiç vıdı vıdı\nSenin için biçilmiş kaftan\nSevginiz de karşılıklı",
+            "Bilir kadrini kıymetini\nÂşık sana bir hayli\nBelki haberin yok ama\nO senden pek ümitli",
+            "Geçer aynı yolları\nBir aşağı bir yukarı\nİşi mi var sandın\nSeni görmek amacı",
+            "Dertlenir kavuşanları görünce\nDüşünür seni her gece\nCesaretini toplayacak\nSen de onu beğenince",
+            "Sevdiği yerler: Bodrum, Kaş\nTuttuğu takım Beşiktaş\nHalden anlar birisidir\nHem eş olur hem arkadaş",
+            "Bir uzun yolculuktur yaşam\nBazen yas olur bazen bayram\nGüzel günler çok yakında\nKederlere dalma her akşam",
+            "Boylu boslu, kalıplı\nPek de sıcakkanlı\nKalbini alacak yakında\nBu genç çok kararlı",
+            "Tatlıdır ondaki sertlik\nKızınca bakıyor dik dik\nSen bekletmeyi seversin\nAma seninki pek dakik",
+            "Duy şu çarpan kalbin sesini\nSanki söyler senin ismini\nO hep böyle çarpacak\nSürecek aşkı ebedi",
+            "Parayla olmaz saadet\nAşkı aramaya devam et\nSen o yârdan ayrılırsan\nVardır bunda bir keramet",
+            "Acaba bu bir sihir mi\nNe beş ne on ne yirmi\nSık sık karşılaşıyorsunuz\nBu tesadüf olabilir mi",
+            "Bir gece tertip edilecek\nBu geceye o da gelecek\nO, davetlileri unutup\nSeninle konuşup gülecek",
+            "Onun yüreği şimdi bir kuş\nSanırsın bir hazine bulmuş\nO bakarken gülümsemişsin\nDünyalar hemen onun olmuş",
+            "Dolaşmaya çıkar, yağsa yağmur\nÇiçeklerle, kuşlarla konuşur\nSeni de tez değiştirecek\nOndaki bu sihir, bu uğur",
+            "Yok dünyada aşk gibi bir haz\nİnsanda dertten eser kalmaz\nHislerini ona açmadıkça\nEminim gönlün huzur bulmaz",
+            "“Tanımadan olmaz” denir\nKalp doğru insanı bilir\nGit çekinmeden teklif et\nBazen aşk sonradan gelir",
+            "Sevmez o ince hesapları\nDostudur onun kitapları\nBu yakışıklıda saklıdır\nSorularının cevapları",
+            "Gözlerine kurbanım\nDudaklarına hayranım\nMerak etme sevgilim\nDeğmez sana Nazar’ım",
+            "Gezmez hiç geceleri\nOynamaz kumar, içmez içki\nİyi aile çocuğudur\nOlmasın aklında çelişki",
+            "Yağmur yağmaz her gün\nDağılır gider bu hüzün\nBir gün bulacak seni de\nAşk, para, bir de ün",
+            "Çizer resim karakalem\nHayran ona cümle alem\nKaçırmamak için seni\nAlmış bir dizi önlem",
+            "Hastaymış ne zamandır\nGöstermiş büyük sabır\nAslan gibi, bulacak seni\nArtık içi kıpır kıpır",
+            "Kahramanın var hayali\nİstersin onun gibi cesur biri\nDenizleri aşıp gelecek\nBulacak seni o bahriyeli",
+            "Şansını kaçırdı sanmış\nÜzüntüden solmuş sararmış\nSeni yalnız görünce\nYine hayata bağlanmış",
+            "Koluna taktı mı sepeti\nDoldurur içine vişneleri\nSana da ikram edecek\nGöreceksin pek ilgili",
+            "Bu çok güzel bir meyve\nAşkınızdan size hediye\nBüyüyecek neşeli mutlu\nHayırlı olacak millete",
+            "Gelecek son dakikada haber\nVar sıcak gelişmeler\nAğızdan ağıza dolaşacak\nKavuşacaksınız bu sefer",
+            "Yemeği yapar lezzetli\nElleri çok marifetli\nTutacak elini yakında\nOlacak sana sevgili",
+            "Hayatında herşey kararında\nAma gelişme var pek yakında\nTanışacaksın bir esmerle\nDemeyeceksin hiç elveda",
+            "Aşkından düşmüş bitap\nÇeker her gün azap\nGel evet de biçareye\nKazan büyük sevap"
+        ];
+        
+        /**
+         * Verilen metni Title Case (Her kelimenin ilk harfi büyük) formatına çevirir.
+         * @param {string} str - Dönüştürülecek metin
+         */
+        function toTitleCase(str) {
+            if (!str) return '';
+            return str.replace(/\w\S*/g, function(txt) {
+                // Her kelimenin ilk harfini büyük, geri kalanını küçük yap
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            });
+        }
+
+
+        // --- Firebase Başlatma ve Yetkilendirme ---
+
+        // Ortam değişkenlerinden Firebase yapılandırmasını al
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        /**
+         * Ortak (Public) Fal koleksiyon yolunu döndürür.
+         */
+        const getFortunesCollectionPath = () => {
+            // Ortak depolama yolu: /artifacts/{appId}/public/data/globalFortunes
+            return `artifacts/${appId}/public/data/globalFortunes`;
+        };
+        
+        /**
+         * Gizlenen Fal koleksiyon yolunu döndürür (Kullanıcıya özel).
+         */
+        const getHiddenFortunesCollectionPath = (uid) => {
+            return `artifacts/${appId}/users/${uid}/hiddenFortunes`;
+        };
+
+
+        /**
+         * Firebase'i başlatır ve yetkilendirmeyi yönetir.
+         */
+        const initFirebase = async () => {
+            if (!firebaseConfig) {
+                console.error("Firebase yapılandırması yüklenemedi.");
+                return;
+            }
+
+            try {
+                // Firebase servislerini başlat
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                // Firestore loglarını etkinleştir (Hata ayıklama için)
+                setLogLevel('Debug'); 
+
+                // Yetkilendirme tokenı varsa giriş yap, yoksa anonim giriş yap
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // Yetkilendirme durumu değiştiğinde kullanıcı kimliğini güncelle
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        console.log("Oturum Açıldı. UID:", userId); 
+                        
+                        // Oturum açıldıktan sonra dinleyicileri başlat
+                        setupHistoryListener();
+                        setupHiddenFortunesListener(); // Yeni dinleyici
+                    } else {
+                        // Anonim veya kimliği belirlenemeyen kullanıcılar için rastgele ID
+                        userId = crypto.randomUUID(); 
+                        console.log("Anonim Kimlik Kullanılıyor:", userId);
+                        setupHistoryListener(); 
+                    }
+                });
+
+            } catch (error) {
+                console.error("Firebase başlatılırken hata oluştu:", error);
+            }
+        };
+
+        // --- UI ve Uygulama Mantığı ---
+
+        /**
+         * Kullanıcı adını doğrular ve ana ekrana geçiş yapar.
+         */
+        window.login = function() {
+            const inputName = usernameInput.value.trim();
+
+            if (inputName.length < 3) {
+                loginErrorMsg.textContent = "Kullanıcı adı en az 3 karakter olmalıdır.";
+                loginErrorMsg.classList.remove('hidden');
+                return;
+            }
+            loginErrorMsg.classList.add('hidden');
+
+            userName = toTitleCase(inputName); // KULLANICI ADI TITLE CASE YAPILDI
+            
+            // Kullanıcı adı kaydı (Profil verisi hala kullanıcının özel alanında tutulur)
+            if (userId) {
+                const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile`, "data");
+                setDoc(userDocRef, { name: userName, lastLogin: serverTimestamp() }, { merge: true })
+                    .catch(err => console.error("Kullanıcı adı kaydı başarısız:", err));
+            }
+
+            // KARŞILAMA METNİ GÜNCELLENDİ (Baş harfi büyük ve çek fiili kullanıldı)
+            greetingElement.textContent = `Hoş Geldin, ${userName}! Hadi bir fal çek.`;
+            loginDiv.style.display = 'none';
+            mainDiv.style.display = 'block';
+        }
+        
+        /**
+         * Kullanıcıyı giriş ekranına geri döndürür.
+         * Tıklama sonrası butonun tuhaf görünmesini engellemek için aktif odağı kaldırır.
+         */
+        window.logout = function() {
+            // Aktif olan elementin (Geri Dön butonu) odağını kaldırır
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+
+            mainDiv.style.display = 'none';
+            loginDiv.style.display = 'block';
+            resultElement.textContent = "Falınız Burada Gözükecek...";
+            resultElement.classList.remove('bg-gray-100', 'border-gray-400');
+            resultElement.classList.add('bg-yellow-100', 'border-yellow-500');
+            usernameInput.focus();
+        }
+
+
+        /**
+         * Rastgele bir fal seçer, sonucu gösterir ve Firestore'a kaydeder.
+         */
+        window.spinFal = function() {
+            // Kontrol: Fal listesi boş olmamalı
+            if (fortunes.length === 0) {
+                resultElement.textContent = "Hata: Lütfen Fal Metinlerinizi Ekleyin!";
+                resultElement.classList.remove('bg-yellow-100', 'border-yellow-500');
+                resultElement.classList.add('bg-red-100', 'border-red-500');
+                return;
+            }
+
+            if (spinButton.disabled) return;
+            
+            spinButton.disabled = true;
+            spinButton.textContent = "Fal Çekiliyor...";
+            
+            // BEKLEME MESAJI
+            resultElement.textContent = "Sakız Kağıdınız Açılıyor..";
+            resultElement.classList.remove('bg-yellow-100', 'border-yellow-500');
+            resultElement.classList.add('bg-gray-100', 'border-gray-400');
+            
+            // 1. Falı seç
+            const randomIndex = Math.floor(Math.random() * fortunes.length);
+            const fortuneText = fortunes[randomIndex];
+            const timestamp = new Date();
+            
+            // 2. 1.5 saniyelik bir bekleme sonrası sonucu göster
+            setTimeout(() => {
+                
+                // Ana ekrandaki sonucu güncelle
+                resultElement.textContent = fortuneText;
+                resultElement.classList.remove('bg-gray-100', 'border-gray-400');
+                resultElement.classList.add('bg-yellow-100', 'border-yellow-500', 'animate-pulse');
+
+                // Kayıt işlemini başlat (public alana kaydediliyor)
+                saveFortune(fortuneText, timestamp);
+
+                spinButton.disabled = false;
+                spinButton.textContent = "Fal Çek!";
+                setTimeout(() => resultElement.classList.remove('animate-pulse'), 1000); // Animasyonu kısa tut
+            }, 1500); // 1.5 saniyelik görsel bekleme
+        }
+
+        /**
+         * Fal sonucunu Firestore'a ortak alana kaydeder.
+         * @param {string} text - Fal metni
+         * @param {Date} date - Falın çevrildiği zaman
+         */
+        async function saveFortune(text, date) {
+            if (!db || !userId || !userName) {
+                console.error("Veritabanı, kullanıcı ID'si veya adı yok. Kayıt başarısız.");
+                return;
+            }
+
+            try {
+                const docRef = await addDoc(collection(db, getFortunesCollectionPath()), {
+                    userId: userId,
+                    userName: userName, 
+                    text: text,
+                    timestamp: serverTimestamp(), // Sunucu zaman damgasını kullan
+                    localTime: date.toLocaleString('tr-TR') // Lokal zamanı da kaydet
+                });
+                console.log("Fal başarıyla ortak alana kaydedildi, ID:", docRef.id);
+            } catch (e) {
+                console.error("Fal kaydı sırasında hata oluştu: ", e);
+            }
+        }
+        
+        /**
+         * Falı HERKES için ortak alandan siler (Çöp kutusu butonu).
+         * @param {string} docId - Silinecek fal kaydının doküman ID'si (public)
+         * @param {string} ownerId - Falı oluşturan kullanıcının ID'si
+         */
+        window.deleteFortune = async function(docId, ownerId) {
+            if (!db || !userId) {
+                console.error("Veritabanı bağlantısı veya kullanıcı ID'si yok. Silme başarısız.");
+                return;
+            }
+
+            // KONTROL: Sadece falın sahibi silebilir.
+            if (ownerId && ownerId !== userId) {
+                console.error("Güvenlik Hatası: Bu fal size ait değil. Sadece kendi fallarınızı herkes için silebilirsiniz.");
+                return; 
+            }
+
+            console.log(`Uyarı: Falı herkes için kalıcı olarak siliyorsunuz (${docId}).`);
+            
+            try {
+                const docRef = doc(db, getFortunesCollectionPath(), docId);
+                await deleteDoc(docRef);
+                console.log("Fal başarıyla herkes için silindi, ID:", docId);
+                
+                // Gizleme kaydını da sil (Temizlik amaçlı)
+                const hiddenDocRef = doc(db, getHiddenFortunesCollectionPath(userId), docId);
+                await deleteDoc(hiddenDocRef).catch(() => {}); 
+            } catch (e) {
+                console.error("Herkes için silme sırasında hata oluştu: ", e);
+            }
+        }
+
+        /**
+         * Falı SADECE MEVCUT KULLANICI için gizler (Bulanıklaştırır).
+         * Optimistic UI (Anında Güncelleme) ile güncellenmiştir.
+         * @param {string} docId - Gizlenecek fal kaydının doküman ID'si (public)
+         * @param {string} ownerId - Falı oluşturan kullanıcının ID'si
+         */
+        window.hideFortune = async function(docId, ownerId) {
+            if (!db || !userId) {
+                console.error("Veritabanı bağlantısı veya kullanıcı ID'si yok. Gizleme başarısız.");
+                return;
+            }
+            
+            // KONTROL: Sadece falın sahibi gizleyebilir.
+            if (ownerId && ownerId !== userId) {
+                console.error("Güvenlik Hatası: Bu fal size ait değil. Sadece kendi fallarınızı gizleyebilirsiniz.");
+                return;
+            }
+            
+            // --- OPTIMISTIC UI BAŞLANGICI ---
+            const originalState = hiddenFortuneIds.has(docId); 
+
+            // 1. ANINDA GÜNCELLEME (Local State)
+            if (!originalState) {
+                hiddenFortuneIds.add(docId);
+                setupHistoryListener(true); // UI'ı hemen güncelle
+            }
+            // --- OPTIMISTIC UI SONU ---
+
+            try {
+                // 2. ARKA PLAN KAYDI (Database Write)
+                const hiddenDocRef = doc(db, getHiddenFortunesCollectionPath(userId), docId);
+                await setDoc(hiddenDocRef, { hiddenAt: serverTimestamp() });
+                console.log("Fal başarıyla sadece sizin için gizlendi (bulanıklaştırıldı) [OPTIMISTIC], ID:", docId);
+            } catch (e) {
+                // 3. BAŞARISIZLIK DURUMUNDA GERİ ALMA (Rollback)
+                if (!originalState) {
+                    hiddenFortuneIds.delete(docId);
+                    setupHistoryListener(true); // UI'ı eski haline döndür
+                }
+                console.error("Sadece benim için gizleme sırasında hata oluştu ve geri alındı: ", e);
+            }
+        }
+        
+        /**
+         * Daha önce gizlenmiş olan falı tekrar gösterir (Gizleme kaydını siler).
+         * Optimistic UI (Anında Güncelleme) ile güncellenmiştir.
+         * @param {string} docId - Gizleme kaydının doküman ID'si (public fal ID'si ile aynı)
+         * @param {string} ownerId - Falı gizleyen kullanıcının ID'si (kontrol amaçlı)
+         */
+        window.unhideFortune = async function(docId, ownerId) {
+            if (!db || !userId) {
+                console.error("Veritabanı bağlantısı veya kullanıcı ID'si yok. Gizlemeyi kaldırma başarısız.");
+                return;
+            }
+            
+            // KONTROL: Sadece falı gizleyen kişi geri getirebilir.
+            if (ownerId && ownerId !== userId) {
+                console.error("Güvenlik Hatası: Bu falı sadece siz gizlediğiniz için, sadece siz geri getirebilirsiniz.");
+                return;
+            }
+            
+            // --- OPTIMISTIC UI BAŞLANGICI ---
+            const originalState = hiddenFortuneIds.has(docId); 
+            
+            // 1. ANINDA GÜNCELLEME (Local State)
+            if (originalState) {
+                hiddenFortuneIds.delete(docId);
+                setupHistoryListener(true); // UI'ı hemen güncelle
+            }
+            // --- OPTIMISTIC UI SONU ---
+
+            try {
+                // 2. ARKA PLAN KAYDI (Database Write)
+                const hiddenDocRef = doc(db, getHiddenFortunesCollectionPath(userId), docId);
+                await deleteDoc(hiddenDocRef);
+                console.log("Fal başarıyla tekrar gösterildi [OPTIMISTIC], Gizleme ID'si silindi:", docId);
+            } catch (e) {
+                // 3. BAŞARISIZLIK DURUMUNDA GERİ ALMA (Rollback)
+                if (originalState) {
+                    hiddenFortuneIds.add(docId);
+                    setupHistoryListener(true); // UI'ı eski haline döndür
+                }
+                console.error("Gizlemeyi kaldırma sırasında hata oluştu ve geri alındı: ", e);
+            }
+        }
+        
+        /**
+         * Kullanıcının gizlediği fal kimliklerini gerçek zamanlı olarak dinler.
+         */
+        function setupHiddenFortunesListener() {
+             if (!db || !userId) return;
+
+             const hiddenRef = collection(db, getHiddenFortunesCollectionPath(userId));
+             
+             onSnapshot(hiddenRef, (snapshot) => {
+                hiddenFortuneIds.clear(); 
+                snapshot.forEach((doc) => {
+                    hiddenFortuneIds.add(doc.id); 
+                });
+                console.log(`Gizlenen fal sayısı güncellendi: ${hiddenFortuneIds.size}`);
+                setupHistoryListener(true); 
+             }, (error) => {
+                 console.error("Gizlenen fallar dinlenirken hata oluştu:", error);
+                 // Hata durumunda da listeyi temizle
+                 // historyList.innerHTML = `<li class="text-red-500 text-center">Gizlenen fallar yüklenemedi.</li>`;
+             });
+        }
+
+        /**
+         * Fal geçmişini (ortak akışı) Firestore'dan gerçek zamanlı olarak dinler ve listeyi günceller.
+         * @param {boolean} forceRender - Gizli listesi değiştiğinde tetiklemek için.
+         */
+        let isListening = false;
+        function setupHistoryListener(forceRender = false) {
+            if (!db) {
+                console.warn("Dinleyici başlatılamadı: Veritabanı bekleniyor...");
+                return;
+            }
+            
+            // Dinleyici zaten kuruluysa ve forceRender yoksa, tekrar kurma
+            if (isListening && !forceRender) return;
+
+            const fortunesRef = collection(db, getFortunesCollectionPath());
+            const q = query(fortunesRef); 
+
+            // Gerçek zamanlı dinleyici (onSnapshot)
+            onSnapshot(q, (snapshot) => {
+                isListening = true;
+                const history = [];
+                snapshot.forEach((doc) => {
+                    const data = { id: doc.id, ...doc.data() };
+                    history.push(data); 
+                });
+
+                // Javascript ile lokal olarak sıralama yap
+                history.sort((a, b) => {
+                    const timeA = a.timestamp ? a.timestamp.toDate() : new Date(a.localTime);
+                    const timeB = b.timestamp ? b.timestamp.toDate() : new Date(b.localTime);
+                    return timeB - timeA; // Azalan sıra (En yeni en başta)
+                });
+
+                renderHistory(history);
+            }, (error) => {
+                isListening = false;
+                console.error("Fal geçmişi dinlenirken kritik hata oluştu:", error);
+                // KRİTİK HATA DURUMUNDA KULLANICIYA MESAJ GÖSTER
+                historyList.innerHTML = `<li class="text-red-500 text-center p-2 bg-red-50 rounded-md">Veritabanı bağlantısı kurulamadı. Lütfen konsolu kontrol edin.</li>`;
+            });
+        }
+
+        /**
+         * Fal geçmişi dizisini HTML listesine dönüştürür.
+         * @param {Array<Object>} history - Fal geçmişi dizisi
+         */
+        function renderHistory(history) {
+            historyList.innerHTML = ''; // Listeyi temizle
+
+            if (history.length === 0) {
+                // Eğer liste boşsa, yükleniyor yerine net bir mesaj göster
+                historyList.innerHTML = `<li class="text-gray-500 text-center p-2 bg-gray-50 rounded-md">Henüz çevrilmiş fal yok. Hadi ilk falı siz çevirin!</li>`;
+                return;
+            }
+
+            history.forEach(fal => {
+                const li = document.createElement('li');
+                
+                // Zaman damgasını biçimlendir
+                let timeStr = "Bilinmeyen Zaman";
+                if (fal.timestamp) {
+                    timeStr = fal.timestamp.toDate().toLocaleString('tr-TR', { 
+                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' 
+                    });
+                } else if (fal.localTime) {
+                    timeStr = new Date(fal.localTime).toLocaleString('tr-TR', {
+                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' 
+                    });
+                }
+
+                // Falın mevcut kullanıcıya ait olup olmadığını kontrol et
+                const isMyFortune = fal.userId === userId;
+                
+                // YENİ KONTROL: Fal gizlenmiş mi?
+                const isHidden = hiddenFortuneIds.has(fal.id);
+
+                // İki Silme Butonunun Olduğu Alan (isMyFortune ise butonları göster)
+                let deleteButtonsHtml = '';
+                
+                if (isMyFortune) {
+                    if (isHidden) {
+                        // Gizlenmiş: Gizlemeyi Kaldır butonu göster
+                        deleteButtonsHtml = `
+                            <div class="flex space-x-1.5 ml-2 pt-1">
+                                <!-- GİZLEMEYİ KALDIR (Yenileme İkonu) -->
+                                <button onclick="unhideFortune('${fal.id}', '${fal.userId}')"
+                                        title="Gizlemeyi Kaldır (Tekrar Göster)"
+                                        class="text-green-500 hover:text-green-700 transition duration-150 p-1.5 rounded-full hover:bg-green-100">
+                                    <!-- SVG Yenileme İkonu -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                       <path d="M21.5 2v6h-6"/><path d="M2.5 22v-6h6"/><path d="M20.4 12.3a8 8 0 1 1-14.9 3.1"/><path d="M2.5 10a9.5 9.5 0 0 1 18.5 0"/>
+                                    </svg>
+                                </button>
+                                
+                                <!-- HERKES İÇİN SİL (Çöp Kutusu İkonu) -->
+                                <button onclick="deleteFortune('${fal.id}', '${fal.userId}')"
+                                        title="Herkes İçin Kalıcı Sil"
+                                        class="text-red-400 hover:text-red-600 transition duration-150 p-1.5 rounded-full hover:bg-red-50">
+                                    <!-- SVG Çöp Kutusu İkonu -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        // Gizlenmemiş: Gizle butonu göster
+                        deleteButtonsHtml = `
+                            <div class="flex space-x-1.5 ml-2 pt-1">
+                                <!-- SADECE BENİM İÇİN GİZLE (Bulanıklaştır) -->
+                                <button onclick="hideFortune('${fal.id}', '${fal.userId}')"
+                                        title="Sadece Benim İçin Gizle (Bulanıklaştır)"
+                                        class="text-blue-400 hover:text-blue-600 transition duration-150 p-1.5 rounded-full hover:bg-blue-50">
+                                    <!-- SVG Göz İkonu (Gizle) -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A10.52 10.52 0 0 1 12 4c7 0 11 8 11 8a18.45 18.45 0 0 1-5.06 5.94M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                                    </svg>
+                                </button>
+                                
+                                <!-- HERKES İÇİN SİL (Çöp Kutusu İkonu) -->
+                                <button onclick="deleteFortune('${fal.id}', '${fal.userId}')"
+                                        title="Herkes İçin Kalıcı Sil"
+                                        class="text-red-400 hover:text-red-600 transition duration-150 p-1.5 rounded-full hover:bg-red-50">
+                                    <!-- SVG Çöp Kutusu İkonu -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                        `;
+                    }
+                } else {
+                    deleteButtonsHtml = `<div class="w-12 h-7"></div>`; // Hizalama için boşluk
+                }
+
+
+                // isHidden durumuna göre CSS sınıfını ayarla
+                const liClasses = `p-3 bg-white border-l-4 border-blue-400 shadow-sm rounded-lg flex justify-between items-start ${isHidden ? 'blurred' : ''}`;
+                li.className = liClasses;
+                
+                li.innerHTML = `
+                    <div class="flex-grow pr-4">
+                        <!-- Kullanıcı adını gösteren sosyal medya akışı formatı -->
+                        <p class="text-xs text-gray-700 font-semibold mb-1">${fal.userName} az önce bir fal çekti:</p>
+                        <p class="text-sm font-medium">${fal.text}</p>
+                        <span class="text-xs text-blue-500 whitespace-nowrap">${timeStr}</span>
+                    </div>
+                    ${deleteButtonsHtml}
+                `;
+                historyList.appendChild(li);
+            });
+        }
+
+        // Uygulamayı Başlat
+        window.onload = function() {
+            initFirebase();
+            // Sayfa yüklendiğinde kullanıcı adı giriş alanına odaklan
+            usernameInput.focus(); 
+        }
+
+    </script>
+</body>
+</html>
