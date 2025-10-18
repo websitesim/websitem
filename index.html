@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sakız Falı</title>
+    <title>Dijital Sakız Falı</title>
     <!-- Tailwind CSS'i yükle (Harika bir responsive tasarım için) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -588,6 +588,8 @@
          * @param {boolean} forceRender - Gizli listesi değiştiğinde tetiklemek için.
          */
         let isListening = false;
+        let listenTimeout = null; // Timeout değişkeni eklendi
+
         function setupHistoryListener(forceRender = false) {
             if (!db) {
                 console.warn("Dinleyici başlatılamadı: Veritabanı bekleniyor...");
@@ -599,9 +601,15 @@
 
             const fortunesRef = collection(db, getFortunesCollectionPath());
             const q = query(fortunesRef); 
+            
+            // Eğer daha önce bir timeout varsa temizle
+            if (listenTimeout) {
+                clearTimeout(listenTimeout);
+            }
 
             // Gerçek zamanlı dinleyici (onSnapshot)
             onSnapshot(q, (snapshot) => {
+                clearTimeout(listenTimeout); // Başarılı bağlantı: Timeout'u temizle
                 isListening = true;
                 const history = [];
                 snapshot.forEach((doc) => {
@@ -618,11 +626,25 @@
 
                 renderHistory(history);
             }, (error) => {
+                clearTimeout(listenTimeout); // Hata: Timeout'u temizle
                 isListening = false;
-                console.error("Fal geçmişi dinlenirken kritik hata oluştu:", error);
+                // KRİTİK HATA LOG'U: Konsolda görünmesi için
+                console.error("Fal geçmişi dinlenirken kritik hata oluştu (LÜTFEN BU HATAYI KONTROL EDİN):", error);
+                
                 // KRİTİK HATA DURUMUNDA KULLANICIYA MESAJ GÖSTER
-                historyList.innerHTML = `<li class="text-red-500 text-center p-2 bg-red-50 rounded-md">Veritabanı bağlantısı kurulamadı. Lütfen konsolu kontrol edin.</li>`;
+                historyList.innerHTML = `<li class="text-red-500 text-center p-2 bg-red-50 rounded-md">Veritabanı bağlantısı kurulamadı. (Hata: ${error.code || 'Bilinmiyor'}) - Konsolu kontrol edin.</li>`;
             });
+            
+            // Dinleyiciyi başlatmaya zorlayan timeout (5 saniye)
+            if (!forceRender) {
+                listenTimeout = setTimeout(() => {
+                    // Eğer 5 saniye sonra hala 'Yükleniyor...' görüyorsak, bağlantı durmuştur.
+                    if (historyList.innerHTML.includes('Yükleniyor...')) {
+                         console.warn("Veritabanı 5 saniye içinde ilk veriyi döndüremedi. Güvenlik kurallarını kontrol edin.");
+                         historyList.innerHTML = `<li class="text-gray-500 text-center p-2 bg-gray-50 rounded-md">Veritabanına bağlanıldı ancak henüz kimse fal çekmemiş olabilir. Hadi ilk falı siz çekin!</li>`;
+                    }
+                }, 5000);
+            }
         }
 
         /**
@@ -746,4 +768,3 @@
     </script>
 </body>
 </html>
-
