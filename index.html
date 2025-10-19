@@ -68,6 +68,26 @@
             max-width: 450px;
         }
 
+        /* FAL SONUCU GÖSTERİM ALANI İÇİN YENİ STİL (Fal Kağıdı Görünümü) */
+        #result {
+            /* Mevcut sarı arka plan ve border kaldırıldı */
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+
+            /* Görüntü Ayarları (gum_wrapper.png dosya adını varsaydık) */
+            background-image: url('gum_wrapper.png');
+            background-size: 100% 100%; /* Görüntüyü kutuya sığdır */
+            background-repeat: no-repeat;
+            
+            color: #444; /* Metin rengi koyulaştırıldı */
+            padding: 2.5rem 1.5rem !important; /* Görselin kenarlarına uyması için dolgu ayarlandı */
+            min-height: 8rem !important; /* Kağıdın düzgün görünmesi için minimum yükseklik */
+
+            /* İsteğe bağlı: Metne hafif bir 'kağıt üzerinde' efekti */
+            text-shadow: 0.5px 0.5px 0.5px rgba(255, 255, 255, 0.4);
+        }
+
         /* Buton stilleri */
         button {
             transition: all 0.3s ease;
@@ -124,7 +144,7 @@
             Fal Çek!
         </button>
         
-        <p id="result" class="mt-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-lg text-lg italic text-center min-h-[4rem] flex items-center justify-center">
+        <p id="result" class="mt-6 text-lg italic text-center flex items-center justify-center">
             Falınız Burada Gözükecek...
         </p>
         
@@ -324,7 +344,6 @@
                         const storedName = localStorage.getItem('userName');
                         if (storedName) {
                             userName = storedName;
-                            // Burası çalışırsa, ana ekranı tam olarak ayarlar.
                             showMainScreen(); 
                         }
                         setupFortuneListener();
@@ -367,7 +386,7 @@
 
         /**
          * Kullanıcı adını doğrular ve ana ekrana geçiş yapar.
-         * BU FONKSİYON, GİRİŞ SORUNUNU GİDERMEK İÇİN GÜÇLENDİRİLMİŞTİR.
+         * GİRİŞ SORUNUNU GİDERMEK İÇİN UI MANTIĞI YENİDEN DÜZENLENDİ.
          */
         window.login = function() {
             const inputName = usernameInput.value.trim();
@@ -383,7 +402,6 @@
             localStorage.setItem('userName', userName); 
 
             // Auth'un hazır olup olmadığını beklemeden hemen UI'ı değiştir.
-            // showMainScreen, isAuthReady durumunu kontrol edecektir.
             showMainScreen();
         }
         
@@ -401,8 +419,9 @@
             mainDiv.style.display = 'none';
             loginDiv.style.display = 'block';
             resultElement.textContent = "Falınız Burada Gözükecek...";
+            // Fal kağıdı görünümünü korumak için sadece metin temizlendi
             resultElement.classList.remove('bg-gray-100', 'border-gray-400');
-            resultElement.classList.add('bg-yellow-100', 'border-yellow-500');
+            resultElement.classList.add('bg-yellow-100', 'border-yellow-500'); // Bunlar özel CSS tarafından geçersiz kılınır, sorun yok
             usernameInput.focus();
         }
 
@@ -422,8 +441,6 @@
             spinButton.textContent = "Fal Çekiliyor...";
             
             resultElement.textContent = "Sakız Kağıdınız Açılıyor..";
-            resultElement.classList.remove('bg-yellow-100', 'border-yellow-500');
-            resultElement.classList.add('bg-gray-100', 'border-gray-400');
             
             const randomIndex = Math.floor(Math.random() * fortunes.length);
             const fortuneText = fortunes[randomIndex];
@@ -431,9 +448,7 @@
             setTimeout(async () => {
                 
                 resultElement.textContent = fortuneText;
-                resultElement.classList.remove('bg-gray-100', 'border-gray-400');
-                resultElement.classList.add('bg-yellow-100', 'border-yellow-500', 'animate-pulse');
-
+                
                 // Firestore'a kaydet
                 try {
                     await addDoc(getFortuneCollectionRef(), {
@@ -452,7 +467,6 @@
 
                 spinButton.disabled = false;
                 spinButton.textContent = "Fal Çek!";
-                setTimeout(() => resultElement.classList.remove('animate-pulse'), 1000); 
             }, 1500); 
         }
         
@@ -503,7 +517,7 @@
                 }
             } catch (e) {
                 console.error("Tepki (Kalp) işlemi hatası:", e);
-                // Kullanıcıya görünür bir hata vermek yerine konsola yazdırıldı.
+                alert("Kalp bırakma işleminde hata oluştu. Lütfen konsolu kontrol edin.");
             }
         }
 
@@ -627,4 +641,3 @@
     </script>
 </body>
 </html>
-
