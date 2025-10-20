@@ -50,7 +50,7 @@
         
         <header class="bg-teal-600 text-white p-4 flex justify-between items-center shadow-lg flex-shrink-0">
             <h1 class="text-xl font-bold">Genel Sohbet Odası</h1>
-            <button onclick="window.location.href='index.html'"
+            <button onclick="window.location.href='index.html';"
                     class="bg-teal-500 hover:bg-teal-700 text-white font-semibold py-1 px-3 rounded-lg transition duration-150">
                 Ana Sayfaya Dön
             </button>
@@ -283,9 +283,9 @@
                         userName = localStorage.getItem('userName');
                         isAuthReady = true;
                         
-                        // Sohbet sayfasını açınca, sayacı en son mesaja eşitleriz (hepsini okundu sayarız)
                         const dbInstance = getFirestore(app);
                         const chatRef = collection(dbInstance, `artifacts/${customAppId}/public/data/chat`);
+                        
                         onSnapshot(query(chatRef, orderBy('timestamp', 'desc')), (snapshot) => {
                             if (snapshot.size > 0) {
                                 localStorage.setItem('lastSeenChatCount', snapshot.size);
