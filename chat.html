@@ -145,7 +145,7 @@
             const storedName = localStorage.getItem('userName');
             if (!storedName || !getFirestore(app) || !userId) {
                 alert("Lütfen önce ana sayfadan giriş yapın.");
-                window.location.replace('index.html'); // Hata durumunda güçlü yönlendirme
+                window.location.replace('index.html'); 
                 return;
             }
             
@@ -268,8 +268,7 @@
         async function initAuthAndChat() {
             // Kullanıcı adı kontrolü
             if (!localStorage.getItem('userName')) {
-                alert("Lütfen önce ana sayfadan giriş yapın.");
-                window.location.replace('index.html'); // Buradan da güçlü yönlendirme
+                window.location.replace('index.html'); 
                 return;
             }
 
@@ -286,6 +285,7 @@
                         const dbInstance = getFirestore(app);
                         const chatRef = collection(dbInstance, `artifacts/${customAppId}/public/data/chat`);
                         
+                        // Sohbet açıldığında, okunmamış sayacını sıfırlamak için toplam mesaj sayısını kaydet
                         onSnapshot(query(chatRef, orderBy('timestamp', 'desc')), (snapshot) => {
                             if (snapshot.size > 0) {
                                 localStorage.setItem('lastSeenChatCount', snapshot.size);
@@ -297,7 +297,7 @@
                         setupChatListener(); 
                     } else {
                         alert("Oturum açılamadı. Lütfen tekrar deneyin.");
-                        window.location.replace('index.html'); // Buradan da güçlü yönlendirme
+                        window.location.replace('index.html');
                     }
                 });
 
@@ -306,7 +306,7 @@
             } catch (error) {
                 console.error("Uygulama Başlatma Hatası:", error);
                 alert("Sohbet yüklenirken kritik hata oluştu: " + error.message);
-                window.location.replace('index.html'); // Buradan da güçlü yönlendirme
+                window.location.replace('index.html'); 
             }
         }
         
