@@ -135,7 +135,7 @@
             Falınız Burada Gözükecek...
         </p>
         
-        <button onclick="window.location.href='chat.html';"
+        <button onclick="window.location.replace('chat.html');"
                 class="w-full mt-6 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg transition transform hover:scale-[1.01] relative">
             💬 Genel Sohbet Odasına Git 
             <span id="chat-badge" class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full" style="display:none;"></span>
@@ -228,7 +228,9 @@
             return collection(db, `artifacts/${customAppId}/public/data/fortunes`);
         }
         
-        // --- Firebase Başlangıç ve Yetkilendirme ---
+        function getChatCollectionRef() {
+            return collection(db, `artifacts/${customAppId}/public/data/chat`);
+        }
 
         async function initFirebase() {
             try {
@@ -244,6 +246,7 @@
                         
                         if (!isListenersSetup) {
                             setupFortuneListener();
+                            setupChatBadgeListener(); 
                             isListenersSetup = true;
                         }
 
