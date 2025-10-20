@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sakız Falı</title>
+    <title>Sakız Falı | Sohbetli</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -147,13 +147,31 @@
             </ul>
         </div>
         <p class="text-xs text-red-500 mt-2 text-center hidden" id="error-message">Hata: Veritabanı bağlantısı kurulamadı. Firebase ayarlarınızı kontrol edin.</p>
-    </div>
+        
+        <h3 class="text-2xl font-bold mt-8 mb-4 border-b pb-2 text-teal-700">Genel Sohbet Odası</h3>
+        
+        <div id="chat-container" class="max-h-80 overflow-y-auto bg-gray-50 p-3 rounded-lg border border-gray-200" style="min-height: 200px;">
+            <ul id="chat-messages" class="space-y-3">
+                <li class="text-center text-gray-500 text-sm">Sohbet yükleniyor...</li>
+            </ul>
+        </div>
+
+        <div class="mt-4 flex space-x-2">
+            <input type="text" id="chat-input" placeholder="Herkese bir şeyler yaz..."
+                   class="flex-grow p-3 border-2 border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150"
+                   maxlength="100"
+                   onkeypress="if(event.key === 'Enter') sendMessage()">
+            <button onclick="sendMessage()"
+                    class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-150">
+                Gönder
+            </button>
+        </div>
+        </div>
 
     <script type="module">
         // Firebase Modüllerini İçe Aktar
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // Kalp özelliği için gerekli modüller (getDoc, updateDoc, arrayUnion, arrayRemove) eklendi ve doğru yüklendi.
         import { getFirestore, doc, addDoc, onSnapshot, collection, query, deleteDoc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
@@ -167,7 +185,7 @@
         let userName = "";
         let isAuthReady = false; 
 
-        // --- VERİTABANI BAĞLANTI AYARLARI ---
+        // --- VERİTABANI BAĞLANTI AYARLARI (MEVCUT AYARLARINIZ) ---
         const firebaseConfig = {
           apiKey: "AIzaSyCQ8ZJdTmdIxGjzcxoc08w7hl0SfAyekH8",
           authDomain: "skzfli.firebaseapp.com",
@@ -180,7 +198,7 @@
         const customAppId = firebaseConfig.projectId; 
         // ------------------------------------
 
-        // UI Elementleri (Değişmedi)
+        // UI Elementleri 
         const loginDiv = document.getElementById('login');
         const mainDiv = document.getElementById('main');
         const usernameInput = document.getElementById('username');
@@ -191,8 +209,12 @@
         const errorMessageDiv = document.getElementById('error-message');
         const spinButton = document.getElementById('spin-button');
         const authStatusElement = document.getElementById('auth-status');
+
+        // YENİ SOHBET ELEMENTLERİ
+        const chatMessagesList = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
         
-        // --- Fal Metinleri (Toplam 100) ---
+        // --- Fal Metinleri (Değişmedi) ---
         const fortunes = [
             "Aşkın etmiş onu şair\nHer gün yazar bir şiir\nSensin ilham perisi\nTüm satırlar sana dair",
             "Fazla şey beklemez senden\nİster hayatında çekidüzen\nEvliliktir bunun sonu\nSeversen onu gönülden",
@@ -311,6 +333,13 @@
             // Herkese açık veriler için yol: /artifacts/{projectId}/public/data/fortunes
             return collection(db, `artifacts/${customAppId}/public/data/fortunes`);
         }
+        
+        // YENİ: Sohbet koleksiyonu yolunu oluşturur
+        function getChatCollectionRef() {
+            // Herkese açık veriler için yol: /artifacts/{projectId}/public/data/chat
+            return collection(db, `artifacts/${customAppId}/public/data/chat`);
+        }
+
 
         // --- Firebase Başlangıç ve Yetkilendirme ---
 
@@ -338,6 +367,7 @@
                             showMainScreen(); 
                         }
                         setupFortuneListener();
+                        // Sohbet listener'ı showMainScreen() içinde çağrılıyor.
                         
                     } else {
                         userId = null;
@@ -373,6 +403,9 @@
             // Auth hazırsa butonu aç, değilse kapalı kalsın (Yükleniyor...)
             spinButton.disabled = !isAuthReady;
             spinButton.textContent = isAuthReady ? "Fal Çek!" : "Yükleniyor...";
+            
+            // YENİ: Sohbet Listener'ını başlat
+            setupChatListener(); 
         }
 
         /**
@@ -415,7 +448,7 @@
         }
 
 
-        // --- Firestore Veri İşlemleri ---
+        // --- Firestore Fal İşlemleri ---
         
         /**
          * Rastgele bir fal seçer, sonucu gösterir ve Firestore'a kaydeder.
@@ -625,6 +658,109 @@
                 `;
                 historyList.appendChild(li);
             });
+        }
+
+        // --- YENİ SOHBET FONKSİYONLARI ---
+
+        /**
+         * Sohbet mesajını Firestore'a kaydeder.
+         */
+        window.sendMessage = async function() {
+            if (!userName || !db || !isAuthReady || !userId) {
+                console.error("Giriş yapılmadı veya Firebase hazır değil.");
+                return;
+            }
+            
+            const messageText = chatInput.value.trim();
+            if (messageText.length === 0) return;
+
+            chatInput.value = ''; // Mesajı gönderdikten sonra kutuyu temizle
+            
+            try {
+                await addDoc(getChatCollectionRef(), {
+                    userId: userId,
+                    userName: userName,
+                    text: messageText,
+                    timestamp: new Date().toISOString(),
+                });
+                console.log("Sohbet mesajı kaydedildi.");
+
+            } catch (e) {
+                console.error("Sohbet mesajı kaydetme hatası:", e);
+                alert("Mesaj gönderilemedi: " + e.message);
+            }
+        }
+
+        /**
+         * Sohbet mesajları için Firestore listener'ı kurar.
+         */
+        function setupChatListener() {
+            if (!db || !isAuthReady) return;
+
+            // Not: Firestore'da varsayılan olarak zaman damgasına göre sıralama yoksa, kural eklemeniz gerekebilir.
+            // Buradaki sorgu, tüm veriyi çekip JS'te sıralama yapıyor.
+            const q = query(getChatCollectionRef()); 
+
+            onSnapshot(q, (snapshot) => {
+                const messages = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    messages.push({
+                        id: doc.id,
+                        userName: data.userName,
+                        text: data.text,
+                        timestamp: new Date(data.timestamp),
+                        isMine: data.userId === userId // Mesajın bize ait olup olmadığını kontrol et
+                    });
+                });
+
+                // En yeni en altta olacak şekilde sırala (Tarihine göre artan)
+                messages.sort((a, b) => a.timestamp - b.timestamp);
+                
+                renderChatMessages(messages.slice(-20)); // Sadece son 20 mesajı göster (Sade tutmak için)
+
+            }, (error) => {
+                console.error("Firestore Sohbet Akışı Hatası:", error);
+                chatMessagesList.innerHTML = `<li class="text-red-500 text-center text-sm">Sohbet yüklenemedi.</li>`;
+            });
+        }
+
+        /**
+         * Sohbet mesajı dizisini HTML listesine dönüştürür.
+         */
+        function renderChatMessages(messages) {
+            chatMessagesList.innerHTML = '';
+            
+            if (messages.length === 0) {
+                chatMessagesList.innerHTML = `<li class="text-center text-gray-500 text-sm">İlk mesajı siz atın! 👋</li>`;
+                return;
+            }
+
+            messages.forEach(msg => {
+                const li = document.createElement('li');
+                const timeStr = new Date(msg.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+                // Mesajın stilini belirle (Sağa veya Sola hizalama)
+                const messageClass = msg.isMine 
+                    ? 'bg-teal-100 self-end text-right border-teal-400' 
+                    : 'bg-white self-start text-left border-blue-400';
+                
+                const usernameColor = msg.isMine ? 'text-teal-600' : 'text-blue-600';
+
+                li.className = `flex ${msg.isMine ? 'justify-end' : 'justify-start'}`; // Mesajı sağa veya sola hizala
+                li.innerHTML = `
+                    <div class="max-w-[80%] p-3 rounded-xl shadow-sm border border-l-4 ${messageClass}">
+                        <p class="text-xs font-bold ${usernameColor} mb-0.5">${msg.userName}</p>
+                        <p class="text-sm text-gray-800 break-words">${msg.text}</p>
+                        <span class="text-xs text-gray-500 mt-1 block">${timeStr}</span>
+                    </div>
+                `;
+                chatMessagesList.appendChild(li);
+            });
+
+            // En alta kaydır (Sohbeti en son mesaja odakla)
+            const container = document.getElementById('chat-container');
+            container.scrollTop = container.scrollHeight;
         }
 
         // Uygulamayı Başlat
