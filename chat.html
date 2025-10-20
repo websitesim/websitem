@@ -42,6 +42,17 @@
         textarea {
              min-height: 48px; 
         }
+        
+        /* YENİ: Alt Buton Konteyneri için Stil */
+        #bottom-controls {
+            padding: 1rem;
+            background-color: #fff;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Boşluk ekle */
+            flex-shrink: 0;
+        }
 
     </style>
 </head>
@@ -50,10 +61,6 @@
         
         <header class="bg-teal-600 text-white p-4 flex justify-between items-center shadow-lg flex-shrink-0">
             <h1 class="text-xl font-bold">Genel Sohbet Odası</h1>
-            <button onclick="window.location.replace('index.html');"
-                    class="bg-teal-500 hover:bg-teal-700 text-white font-semibold py-1 px-3 rounded-lg transition duration-150">
-                Ana Sayfaya Dön
-            </button>
         </header>
 
         <div id="chat-container">
@@ -62,16 +69,23 @@
             </ul>
         </div>
         
-        <div class="p-4 bg-white border-t border-gray-200 flex space-x-2 items-end flex-shrink-0">
-            <textarea id="chat-input" placeholder="Herkese bir şeyler yaz..."
-               class="flex-grow p-3 border-2 border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150 resize-none overflow-hidden"
-               maxlength="500"
-               rows="1" 
-               oninput="autoResizeTextarea(this)"></textarea>
-            <button type="button" onclick="sendMessage()"
-                    class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-150 flex-shrink-0">
-                Gönder
+        <div id="bottom-controls">
+            <button onclick="window.location.replace('index.html');"
+                    class="w-full bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 rounded-lg transition duration-150">
+                Ana Sayfaya Dön
             </button>
+            
+            <div class="flex space-x-2 items-end">
+                <textarea id="chat-input" placeholder="Herkese bir şeyler yaz..."
+                   class="flex-grow p-3 border-2 border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150 resize-none overflow-hidden"
+                   maxlength="500"
+                   rows="1" 
+                   oninput="autoResizeTextarea(this)"></textarea>
+                <button type="button" onclick="sendMessage()"
+                        class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-150 flex-shrink-0">
+                    Gönder
+                </button>
+            </div>
         </div>
     </div>
     
@@ -284,7 +298,6 @@
                         const dbInstance = getFirestore(app);
                         const chatRef = collection(dbInstance, `artifacts/${customAppId}/public/data/chat`);
                         
-                        // Sohbet açıldığında, okunmamış sayacını sıfırlamak için toplam mesaj sayısını kaydet
                         onSnapshot(query(chatRef, orderBy('timestamp', 'desc')), (snapshot) => {
                             if (snapshot.size > 0) {
                                 localStorage.setItem('lastSeenChatCount', snapshot.size);
