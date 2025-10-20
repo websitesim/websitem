@@ -150,7 +150,7 @@
         
         <h3 class="text-2xl font-bold mt-8 mb-4 border-b pb-2 text-teal-700">Genel Sohbet Odası</h3>
         
-        <div id="chat-container" class="max-h-80 overflow-y-auto bg-gray-50 p-3 rounded-lg border border-gray-200" style="min-height: 200px;">
+        <div id="chat-container" class="overflow-y-auto bg-gray-50 p-3 rounded-lg border border-gray-200" style="height: 350px;">
             <ul id="chat-messages" class="space-y-3">
                 <li class="text-center text-gray-500 text-sm">Sohbet yükleniyor...</li>
             </ul>
@@ -317,9 +317,12 @@
             "Cesaretin yoksa şayet\nHoşlandığını belli et\nOnun sana tavırları\nBence açık bir davet"
         ];
         
-        // YENİ: Kısa bir bildirim sesi çalar.
+        /**
+         * YENİ: Kısa bir bildirim sesi çalar.
+         */
         function playNotificationSound() {
             try {
+                // Ses çalma işlemini AudioContext ile yapıyoruz, bu modern bir yaklaşımdır.
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
@@ -327,14 +330,15 @@
                 oscillator.connect(gainNode);
                 gainNode.connect(audioContext.destination);
 
+                // Sade bir bip sesi için ayarlar (200ms)
                 oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime); 
                 gainNode.gain.setValueAtTime(0, audioContext.currentTime);
                 gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01); 
-                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3); 
+                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.2); 
 
                 oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.3); 
+                oscillator.stop(audioContext.currentTime + 0.2); 
                 
             } catch (e) {
                 console.warn("Ses çalma hatası (Tarayıcı kısıtlamaları olabilir):", e);
@@ -370,7 +374,6 @@
          */
         async function initFirebase() {
             try {
-                // Firebase Uygulamasını Başlat
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -382,7 +385,7 @@
                         authStatusElement.textContent = `Kimlik ID: ${userId}`;
                         isAuthReady = true;
                         
-                        // YENİ GÜVENLİK KONTROLÜ: Listener'lar sadece bir kere ve Auth hazır olduğunda kurulsun
+                        // KRİTİK DÜZELTME: Listener'lar Auth hazır olduğunda SADECE bir kere kurulur.
                         if (!isListenersSetup) {
                             setupFortuneListener();
                             setupChatListener(); 
@@ -399,7 +402,6 @@
                     } else {
                         userId = null;
                         isAuthReady = true;
-                        console.log("Firebase: Kullanıcı oturumu kapalı (anonim bekleniyor).");
                     }
                     errorMessageDiv.classList.add('hidden');
                 });
@@ -428,6 +430,12 @@
             
             spinButton.disabled = !isAuthReady;
             spinButton.textContent = isAuthReady ? "Fal Çek!" : "Yükleniyor...";
+
+            // Sohbeti en alta kaydır (İlk açılışta)
+            const chatContainer = document.getElementById('chat-container');
+            if(chatContainer) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
         }
 
         /**
@@ -446,7 +454,6 @@
             userName = toTitleCase(inputName); 
             localStorage.setItem('userName', userName); 
 
-            // Giriş başarılı, ana ekranı göster. Listener'lar zaten AuthStateChanged içinde kuruluyor.
             showMainScreen();
         }
         
@@ -499,16 +506,14 @@
                 resultElement.classList.add('bg-yellow-100', 'border-yellow-500', 'animate-pulse'); 
 
                 
-                // Firestore'a kaydet
                 try {
                     await addDoc(getFortuneCollectionRef(), {
                         userId: userId,
                         userName: userName,
                         text: fortuneText,
                         timestamp: new Date().toISOString(),
-                        reactedBy: [], // Kalp bırakanların listesi
+                        reactedBy: [], 
                     });
-                    console.log("Fal başarıyla Firestore'a kaydedildi.");
                 } catch (e) {
                     console.error("Fal kaydetme hatası:", e);
                     errorMessageDiv.textContent = `Hata: Fal kaydedilemedi: ${e.message}`;
@@ -531,7 +536,6 @@
             try {
                 await deleteDoc(doc(getFortuneCollectionRef(), docId));
 
-                console.log(`Fal (${docId}) başarıyla silindi.`);
             } catch (e) {
                 console.error("Fal silinirken hata:", e);
             }
@@ -558,12 +562,10 @@
                         await updateDoc(falDocRef, {
                             reactedBy: arrayRemove(userId)
                         });
-                        console.log(`Fal (${docId}) beğenisi kaldırıldı.`);
                     } else {
                         await updateDoc(falDocRef, {
                             reactedBy: arrayUnion(userId)
                         });
-                        console.log(`Fal (${docId}) beğenildi.`);
                     }
                 }
             } catch (e) {
@@ -699,11 +701,12 @@
                     text: messageText,
                     timestamp: new Date().toISOString(),
                 });
-                console.log("Sohbet mesajı kaydedildi.");
-                
-                // Klavyeyi kapattıktan sonra chat alanının en alta kaymasını sağlar.
+
+                // MOBİL KAYMA DÜZELTMESİ: Klavyeyi kapatmaya zorla, sonra kaydır.
                 const container = document.getElementById('chat-container');
                 if (container) {
+                    chatInput.blur(); // Klavye Kapatma
+                    // Scroll'u hemen en alta çek
                     container.scrollTop = container.scrollHeight;
                 }
 
@@ -724,6 +727,7 @@
 
             onSnapshot(q, (snapshot) => {
                 
+                // Başka kullanıcıdan gelen yeni mesajı kontrol et
                 const hasNewMessages = snapshot.docChanges().some(change => 
                     change.type === "added" && change.doc.data().userId !== userId
                 );
@@ -791,10 +795,10 @@
                 chatMessagesList.appendChild(li);
             });
 
-            // YENİ SCROLL MANTIĞI: Sadece yeni mesaj gönderildiğinde veya ilk açılışta kaydır.
-            // Bu, mobil klavye açıldığında istenmeyen kaymaları önler.
+            // SCROLL DÜZELTMESİ: Sadece ilk açılışta veya bizim gönderdiğimiz yeni mesajda kaydır.
             const container = document.getElementById('chat-container');
-            if (container && (isInitialLoad || messages.some(msg => msg.isMine))) {
+            if (container && (isInitialLoad || messages[messages.length - 1].isMine)) {
+                // Küçük bir gecikme kayma sorununu çözebilir
                 setTimeout(() => {
                     container.scrollTop = container.scrollHeight;
                 }, 100); 
