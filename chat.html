@@ -184,7 +184,6 @@
 
             onSnapshot(q, (snapshot) => {
                 
-                // YENİ: Toplam mesaj sayısını kaydet (Ana sayfa sayacı için)
                 localStorage.setItem('currentChatCount', snapshot.size); 
                 
                 const changes = snapshot.docChanges().filter(change => change.type === "added");
@@ -266,7 +265,7 @@
         }
         
         async function initAuthAndChat() {
-            // Kullanıcı adı kontrolü
+            // Kullanıcı adı yoksa ana sayfaya dön (Kesin Kontrol)
             if (!localStorage.getItem('userName')) {
                 window.location.replace('index.html'); 
                 return;
@@ -296,6 +295,7 @@
 
                         setupChatListener(); 
                     } else {
+                        // Anonim oturum kapalıysa, ana sayfaya gönder
                         alert("Oturum açılamadı. Lütfen tekrar deneyin.");
                         window.location.replace('index.html');
                     }
@@ -304,6 +304,7 @@
                 await signInAnonymously(auth);
 
             } catch (error) {
+                // Kritik hata durumunda ana sayfaya gönder
                 console.error("Uygulama Başlatma Hatası:", error);
                 alert("Sohbet yüklenirken kritik hata oluştu: " + error.message);
                 window.location.replace('index.html'); 
