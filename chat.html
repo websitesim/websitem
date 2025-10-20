@@ -10,7 +10,7 @@
         /* Sohbet Sayfası İçin Özel CSS */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0fdf4; /* Daha sakin bir arka plan */
+            background-color: #f0fdf4; 
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -21,7 +21,7 @@
         #chat-page {
             display: flex;
             flex-direction: column;
-            flex-grow: 1; /* Tüm dikey alanı kapla */
+            flex-grow: 1; 
             width: 100%;
             max-width: 800px; 
             margin: 0 auto;
@@ -29,7 +29,6 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
-        /* Mesajların Aktığı Alan (Ekranın kalan kısmını doldurur ve kaydırmayı garanti eder) */
         #chat-container {
             flex-grow: 1;
             overflow-y: auto;
@@ -39,9 +38,9 @@
             justify-content: flex-start;
         }
         
-        /* Textarea Stilleri */
+        /* Textarea Stilleri (Otomatik Büyüme için min-height) */
         textarea {
-             min-height: 48px; /* Tek satır butona denk gelsin */
+             min-height: 48px; 
         }
 
     </style>
@@ -185,6 +184,9 @@
 
             onSnapshot(q, (snapshot) => {
                 
+                // YENİ: Toplam mesaj sayısını kaydet (Ana sayfa sayacı için)
+                localStorage.setItem('currentChatCount', snapshot.size); 
+                
                 const changes = snapshot.docChanges().filter(change => change.type === "added");
                 
                 const hasNewMessagesFromOthers = changes.some(change => 
@@ -280,6 +282,18 @@
                         userId = user.uid;
                         userName = localStorage.getItem('userName');
                         isAuthReady = true;
+                        
+                        // Sohbet sayfasını açınca, sayacı en son mesaja eşitleriz (hepsini okundu sayarız)
+                        const dbInstance = getFirestore(app);
+                        const chatRef = collection(dbInstance, `artifacts/${customAppId}/public/data/chat`);
+                        onSnapshot(query(chatRef, orderBy('timestamp', 'desc')), (snapshot) => {
+                            if (snapshot.size > 0) {
+                                localStorage.setItem('lastSeenChatCount', snapshot.size);
+                                localStorage.setItem('currentChatCount', snapshot.size);
+                            }
+                        });
+
+
                         setupChatListener(); 
                     } else {
                         alert("Oturum açılamadı. Lütfen tekrar deneyin.");
