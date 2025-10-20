@@ -141,7 +141,7 @@
         
         <h3 class="text-2xl font-bold mt-8 mb-4 border-b pb-2 text-teal-700">Genel Fal Akışı (Herkese Açık)</h3>
         
-        <div id="history-container" class="overflow-y-auto" style="height: 300px;"> 
+        <div id="history-container" class="overflow-y-auto" style="height: 400px;"> 
             <ul id="history" class="space-y-2">
                 <li class="text-gray-500 text-sm text-center">Yükleniyor...</li>
             </ul>
@@ -150,7 +150,7 @@
         
         <h3 class="text-2xl font-bold mt-8 mb-4 border-b pb-2 text-teal-700">Genel Sohbet Odası</h3>
         
-        <div id="chat-container" class="overflow-y-auto bg-gray-50 p-3 rounded-lg border border-gray-200" style="height: 350px;">
+        <div id="chat-container" class="overflow-y-auto bg-gray-50 p-3 rounded-lg border border-gray-200" style="height: 450px;">
             <ul id="chat-messages" class="space-y-3">
                 <li class="text-center text-gray-500 text-sm">Sohbet yükleniyor...</li>
             </ul>
@@ -553,7 +553,7 @@
                     timestamp: new Date().toISOString(),
                 });
 
-                // MOBİL KAYMA DÜZELTMESİ VE TEXTAREA SIFIRLAMA
+                // MOBİL KAYMA DÜZELTMESİ: Klavyeyi kapatmaya zorla, sonra kaydır.
                 const container = document.getElementById('chat-container');
                 if (container) {
                     chatInput.blur(); 
