@@ -156,16 +156,15 @@
             </ul>
         </div>
 
-        <div class="mt-4 flex space-x-2">
+        <form onsubmit="event.preventDefault(); sendMessage();" class="mt-4 flex space-x-2">
             <input type="text" id="chat-input" placeholder="Herkese bir şeyler yaz..."
                    class="flex-grow p-3 border-2 border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150"
-                   maxlength="100"
-                   onkeypress="if(event.key === 'Enter') sendMessage()">
-            <button onclick="sendMessage()"
+                   maxlength="100">
+            <button type="submit"
                     class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-150">
                 Gönder
             </button>
-        </div>
+        </form>
         </div>
 
     <script type="module">
@@ -318,6 +317,33 @@
             "Cesaretin yoksa şayet\nHoşlandığını belli et\nOnun sana tavırları\nBence açık bir davet"
         ];
         
+        // YENİ: Kısa bir bildirim sesi çalar.
+        function playNotificationSound() {
+            // Tarayıcı uyumluluğu için basit bir AudioContext kullanalım
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                // Sade bir bip sesi için ayarlar (300 ms)
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01); 
+                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3); 
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.3); 
+                
+            } catch (e) {
+                console.warn("Ses çalma hatası (Tarayıcı kısıtlamaları olabilir):", e);
+            }
+        }
+
+
         /**
          * Verilen metni Title Case (Her kelimenin ilk harfi büyük) formatına çevirir.
          */
@@ -334,7 +360,7 @@
             return collection(db, `artifacts/${customAppId}/public/data/fortunes`);
         }
         
-        // YENİ: Sohbet koleksiyonu yolunu oluşturur
+        // Sohbet koleksiyonu yolunu oluşturur
         function getChatCollectionRef() {
             // Herkese açık veriler için yol: /artifacts/{projectId}/public/data/chat
             return collection(db, `artifacts/${customAppId}/public/data/chat`);
@@ -367,7 +393,6 @@
                             showMainScreen(); 
                         }
                         setupFortuneListener();
-                        // Sohbet listener'ı showMainScreen() içinde çağrılıyor.
                         
                     } else {
                         userId = null;
@@ -404,7 +429,6 @@
             spinButton.disabled = !isAuthReady;
             spinButton.textContent = isAuthReady ? "Fal Çek!" : "Yükleniyor...";
             
-            // YENİ: Sohbet Listener'ını başlat
             setupChatListener(); 
         }
 
@@ -424,7 +448,6 @@
             userName = toTitleCase(inputName); 
             localStorage.setItem('userName', userName); 
 
-            // Auth'un hazır olup olmadığını beklemeden hemen UI'ı değiştir.
             showMainScreen();
         }
         
@@ -463,8 +486,8 @@
             spinButton.textContent = "Fal Çekiliyor...";
             
             resultElement.textContent = "Sakız Kağıdınız Açılıyor..";
-            resultElement.classList.remove('bg-yellow-100', 'border-yellow-500'); // Eski stil sınıflarını temizle
-            resultElement.classList.add('bg-gray-100', 'border-gray-400'); // Yükleme stilini uygula
+            resultElement.classList.remove('bg-yellow-100', 'border-yellow-500'); 
+            resultElement.classList.add('bg-gray-100', 'border-gray-400'); 
 
             
             const randomIndex = Math.floor(Math.random() * fortunes.length);
@@ -473,8 +496,8 @@
             setTimeout(async () => {
                 
                 resultElement.textContent = fortuneText;
-                resultElement.classList.remove('bg-gray-100', 'border-gray-400'); // Yükleme stilini kaldır
-                resultElement.classList.add('bg-yellow-100', 'border-yellow-500', 'animate-pulse'); // Eski sarı stili ve animasyonu ekle
+                resultElement.classList.remove('bg-gray-100', 'border-gray-400'); 
+                resultElement.classList.add('bg-yellow-100', 'border-yellow-500', 'animate-pulse'); 
 
                 
                 // Firestore'a kaydet
@@ -567,11 +590,10 @@
                         userName: data.userName,
                         text: data.text,
                         timestamp: new Date(data.timestamp), 
-                        reactedBy: data.reactedBy || [], // Reaksiyon verilerini dahil et
+                        reactedBy: data.reactedBy || [], 
                     });
                 });
                 
-                // Javascript ile lokal olarak sıralama yap (En yeni en başta)
                 history.sort((a, b) => b.timestamp - a.timestamp); 
 
                 renderHistory(history);
@@ -606,12 +628,10 @@
 
                 const isMyFortune = fal.userId === userId;
                 
-                // --- EMOJİ KISMI ---
                 const reactedBy = fal.reactedBy || []; 
                 const reactionCount = reactedBy.length;
                 const userHasReacted = reactedBy.includes(userId);
                 
-                // Kullanıcının tepki verip vermemesine göre buton rengini ayarla
                 const heartColor = userHasReacted ? 'text-red-500' : 'text-gray-400 hover:text-red-400';
                 
                 const reactionHtml = `
@@ -624,12 +644,9 @@
                         <span class="text-sm text-gray-600 font-semibold">${reactionCount}</span>
                     </div>
                 `;
-                // --- /EMOJİ KISMI ---
-
 
                 let deleteButtonsHtml = '';
                 
-                // Sadece falı çeken kişi silme butonunu görür
                 if (isMyFortune) {
                     deleteButtonsHtml = `
                         <button onclick="deleteFortune('${fal.id}', '${fal.userId}')" title="Herkes İçin Kalıcı Sil" class="text-red-400 hover:text-red-600 transition duration-150 p-1.5 rounded-full hover:bg-red-50 ml-2">
@@ -637,7 +654,7 @@
                             </button>
                     `;
                 } else {
-                    deleteButtonsHtml = `<div class="w-10 h-7 ml-2"></div>`; // Buton yeri boş bırakıldı
+                    deleteButtonsHtml = `<div class="w-10 h-7 ml-2"></div>`; 
                 }
 
 
@@ -664,6 +681,7 @@
 
         /**
          * Sohbet mesajını Firestore'a kaydeder.
+         * Formun onsubmit olayından çağrıldığı için, klavye Enter tuşu engellenmiştir.
          */
         window.sendMessage = async function() {
             if (!userName || !db || !isAuthReady || !userId) {
@@ -692,16 +710,20 @@
         }
 
         /**
-         * Sohbet mesajları için Firestore listener'ı kurar.
+         * Sohbet mesajları için Firestore listener'ı kurar (Yeni mesaja göre ses çalar).
          */
         function setupChatListener() {
             if (!db || !isAuthReady) return;
 
-            // Not: Firestore'da varsayılan olarak zaman damgasına göre sıralama yoksa, kural eklemeniz gerekebilir.
-            // Buradaki sorgu, tüm veriyi çekip JS'te sıralama yapıyor.
             const q = query(getChatCollectionRef()); 
 
             onSnapshot(q, (snapshot) => {
+                
+                // YENİ EKLENEN KONTROL: Eğer "added" tipinde bir değişiklik varsa VE bu mesaj bize ait değilse
+                const hasNewMessages = snapshot.docChanges().some(change => 
+                    change.type === "added" && change.doc.data().userId !== userId
+                );
+                
                 const messages = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
@@ -710,14 +732,18 @@
                         userName: data.userName,
                         text: data.text,
                         timestamp: new Date(data.timestamp),
-                        isMine: data.userId === userId // Mesajın bize ait olup olmadığını kontrol et
+                        isMine: data.userId === userId 
                     });
                 });
 
-                // En yeni en altta olacak şekilde sırala (Tarihine göre artan)
                 messages.sort((a, b) => a.timestamp - b.timestamp);
                 
-                renderChatMessages(messages.slice(-20)); // Sadece son 20 mesajı göster (Sade tutmak için)
+                renderChatMessages(messages.slice(-20)); 
+                
+                // YENİ: Yeni mesaj varsa sesi çal
+                if (hasNewMessages) {
+                    playNotificationSound();
+                }
 
             }, (error) => {
                 console.error("Firestore Sohbet Akışı Hatası:", error);
@@ -740,14 +766,13 @@
                 const li = document.createElement('li');
                 const timeStr = new Date(msg.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 
-                // Mesajın stilini belirle (Sağa veya Sola hizalama)
                 const messageClass = msg.isMine 
                     ? 'bg-teal-100 self-end text-right border-teal-400' 
                     : 'bg-white self-start text-left border-blue-400';
                 
                 const usernameColor = msg.isMine ? 'text-teal-600' : 'text-blue-600';
 
-                li.className = `flex ${msg.isMine ? 'justify-end' : 'justify-start'}`; // Mesajı sağa veya sola hizala
+                li.className = `flex ${msg.isMine ? 'justify-end' : 'justify-start'}`; 
                 li.innerHTML = `
                     <div class="max-w-[80%] p-3 rounded-xl shadow-sm border border-l-4 ${messageClass}">
                         <p class="text-xs font-bold ${usernameColor} mb-0.5">${msg.userName}</p>
