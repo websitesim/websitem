@@ -182,6 +182,7 @@
         let userId = null;
         let userName = "";
         let isAuthReady = false; 
+        let isListenersSetup = false; // Listener'ların bir kere kurulduğunu kontrol et
 
         // --- VERİTABANI BAĞLANTI AYARLARI (MEVCUT AYARLARINIZ) ---
         const firebaseConfig = {
@@ -300,4 +301,512 @@
             "İnadını kır bu sefer\nGel bir şans daha ver\nDostluktan öte sevgisi\nBir kez denemeye değer",
             "Sen gül deyince ona\nAlır onu bu kahkaha\nNe desen fazlasını yapar\nDerler buna kara sevda",
             "Gelir gider arada bir\nBirkaç gün olur misafir\nSeni görünce bu sefer\nAşkı olacak bir nehir",
-            "Arkandan koşmuş yetişememiş\nBağırmış sesi kes
+            "Arkandan koşmuş yetişememiş\nBağırmış sesi kesilmiş\nDuy artık şu biçareyi\nAşkın onu derbeder etmiş",
+            "İstemez saçları takma\nKaşı, gözü, burnu yapma\nGüzel olsun senin gibi\nO da doğallıktan yana",
+            "Onu bezdiremezsin sen\nAnlıyor tam altı dilden\nHem maaşı hem huyu güzel\nŞaka değil, o bir çevirmen",
+            "Yâr diyecek “Gözümün nuru\niste yağdırayım yağmuru”\nMertçe seviyor, âşık sana\nArasan bulunmaz kusuru",
+            "Gönül işinde “sabır” diyor\nElbet bir bekleyen vardır diyor\nBaş göz etmeye çalışanlara\nBu iş böyle olmaz, hayır diyor",
+            "Yıldız misali, mavi mavi\nTutuşmuş bu aşkın alevi\nBaban da razı bu işe ama\nBilirsin: kız evi naz evi",
+            "Yanından su gibi akıyor\nGüya çaktırmadan bakıyor\nSenin umursamaz hallerin\nOnun canını çok sıkıyor",
+            "Eksik olmaz dilinden iltifat\nYaptığı iş de ihracat\nHastalanırsan korkma\nEder bir ömür refakat",
+            "Falda bir kutu gördük\nBu pembe kutu küçücük\nBir hediye almış sana\nBir kolye ya da bir yüzük",
+            "Ona gülen gözlerle baktın\nİyi bir intiba bıraktın\nYanmaya hazır kalbinde\nParlak bir kavılcım çaktın",
+            "Ondan çok hoşlandıysan eğer\nBirkaç hafta beklemeye değer\nHislerinden emin olmak için\nHem ona hem kendine zaman ver",
+            "Ev bark almış çocukcağız\nMesut olmak istiyor yalnız\nİsmi baş harflerde saklı\nReddetmek onu, imkânsız",
+            "Tekstil ürünleri satıyor\nParasına para katıyor\nSana saf bir aşkla bağlanmış\nYüreği seninle atıyor",
+            "Cesaretin yoksa şayet\nHoşlandığını belli et\nOnun sana tavırları\nBence açık bir davet"
+        ];
+        
+        // YENİ: Kısa bir bildirim sesi çalar.
+        function playNotificationSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01); 
+                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3); 
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.3); 
+                
+            } catch (e) {
+                console.warn("Ses çalma hatası (Tarayıcı kısıtlamaları olabilir):", e);
+            }
+        }
+
+
+        /**
+         * Verilen metni Title Case (Her kelimenin ilk harfi büyük) formatına çevirir.
+         */
+        function toTitleCase(str) {
+            if (!str) return '';
+            return str.replace(/\w\S*/g, function(txt) {
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            });
+        }
+        
+        // Firestore koleksiyon yollarını oluşturur
+        function getFortuneCollectionRef() {
+            return collection(db, `artifacts/${customAppId}/public/data/fortunes`);
+        }
+        
+        // Sohbet koleksiyonu yolunu oluşturur
+        function getChatCollectionRef() {
+            return collection(db, `artifacts/${customAppId}/public/data/chat`);
+        }
+
+
+        // --- Firebase Başlangıç ve Yetkilendirme ---
+
+        /**
+         * Firebase'i başlatır ve kullanıcı oturumunu açar (Anonim).
+         */
+        async function initFirebase() {
+            try {
+                // Firebase Uygulamasını Başlat
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                // Auth Durumu Değiştiğinde Çalışacak Listener
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        authStatusElement.textContent = `Kimlik ID: ${userId}`;
+                        isAuthReady = true;
+                        
+                        // YENİ GÜVENLİK KONTROLÜ: Listener'lar sadece bir kere ve Auth hazır olduğunda kurulsun
+                        if (!isListenersSetup) {
+                            setupFortuneListener();
+                            setupChatListener(); 
+                            isListenersSetup = true;
+                        }
+
+                        // Eğer kullanıcı zaten giriş yaptıysa (localStorage'da adı varsa)
+                        const storedName = localStorage.getItem('userName');
+                        if (storedName) {
+                            userName = storedName;
+                            showMainScreen(); 
+                        }
+                        
+                    } else {
+                        userId = null;
+                        isAuthReady = true;
+                        console.log("Firebase: Kullanıcı oturumu kapalı (anonim bekleniyor).");
+                    }
+                    errorMessageDiv.classList.add('hidden');
+                });
+                
+                // Anonim giriş yap
+                await signInAnonymously(auth);
+
+            } catch (error) {
+                console.error("Firebase Başlatma Hatası:", error);
+                errorMessageDiv.textContent = `Hata: Veritabanı bağlantısı kurulamadı. Detay: ${error.message}. Kural/API kontrolü yapın.`;
+                errorMessageDiv.classList.remove('hidden');
+            }
+        }
+
+        // --- Kullanıcı Arayüzü ve Giriş/Çıkış ---
+
+        /**
+         * Ana ekrana geçişi yönetir.
+         */
+        function showMainScreen() {
+            if (!userName) return; 
+
+            greetingElement.textContent = `Hoş Geldin, ${userName}! Hadi bir fal çek.`;
+            loginDiv.style.display = 'none';
+            mainDiv.style.display = 'block';
+            
+            spinButton.disabled = !isAuthReady;
+            spinButton.textContent = isAuthReady ? "Fal Çek!" : "Yükleniyor...";
+        }
+
+        /**
+         * Kullanıcı adını doğrular ve ana ekrana geçiş yapar.
+         */
+        window.login = function() {
+            const inputName = usernameInput.value.trim();
+
+            if (inputName.length < 3) {
+                loginErrorMsg.textContent = "Kullanıcı adı en az 3 karakter olmalıdır.";
+                loginErrorMsg.classList.remove('hidden');
+                return;
+            }
+            loginErrorMsg.classList.add('hidden');
+
+            userName = toTitleCase(inputName); 
+            localStorage.setItem('userName', userName); 
+
+            // Giriş başarılı, ana ekranı göster. Listener'lar zaten AuthStateChanged içinde kuruluyor.
+            showMainScreen();
+        }
+        
+        /**
+         * Kullanıcıyı giriş ekranına geri döndürür.
+         */
+        window.logout = function() {
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+
+            localStorage.removeItem('userName'); 
+            userName = "";
+
+            mainDiv.style.display = 'none';
+            loginDiv.style.display = 'block';
+            resultElement.textContent = "Falınız Burada Gözükecek...";
+            resultElement.classList.remove('bg-gray-100', 'border-gray-400');
+            resultElement.classList.add('bg-yellow-100', 'border-yellow-500'); 
+            usernameInput.focus();
+        }
+
+
+        // --- Firestore Fal İşlemleri ---
+        
+        /**
+         * Rastgele bir fal seçer, sonucu gösterir ve Firestore'a kaydeder.
+         */
+        window.spinFal = async function() {
+            if (fortunes.length === 0 || !db || !isAuthReady || !userId || spinButton.disabled) {
+                if (!isAuthReady) console.error("Firebase Auth hazır değil.");
+                return;
+            }
+            
+            spinButton.disabled = true;
+            spinButton.textContent = "Fal Çekiliyor...";
+            
+            resultElement.textContent = "Sakız Kağıdınız Açılıyor..";
+            resultElement.classList.remove('bg-yellow-100', 'border-yellow-500'); 
+            resultElement.classList.add('bg-gray-100', 'border-gray-400'); 
+
+            
+            const randomIndex = Math.floor(Math.random() * fortunes.length);
+            const fortuneText = fortunes[randomIndex];
+            
+            setTimeout(async () => {
+                
+                resultElement.textContent = fortuneText;
+                resultElement.classList.remove('bg-gray-100', 'border-gray-400'); 
+                resultElement.classList.add('bg-yellow-100', 'border-yellow-500', 'animate-pulse'); 
+
+                
+                // Firestore'a kaydet
+                try {
+                    await addDoc(getFortuneCollectionRef(), {
+                        userId: userId,
+                        userName: userName,
+                        text: fortuneText,
+                        timestamp: new Date().toISOString(),
+                        reactedBy: [], // Kalp bırakanların listesi
+                    });
+                    console.log("Fal başarıyla Firestore'a kaydedildi.");
+                } catch (e) {
+                    console.error("Fal kaydetme hatası:", e);
+                    errorMessageDiv.textContent = `Hata: Fal kaydedilemedi: ${e.message}`;
+                    errorMessageDiv.classList.remove('hidden');
+                }
+
+                spinButton.disabled = false;
+                spinButton.textContent = "Fal Çek!";
+                setTimeout(() => resultElement.classList.remove('animate-pulse'), 1000); 
+            }, 1500); 
+        }
+        
+        /**
+         * Falı HERKES için Firestore'dan siler (Sadece kendi falını silebilir).
+         */
+        window.deleteFortune = async function(docId, ownerId) {
+            if (ownerId !== userId) return; 
+
+            if (!db) return;
+            try {
+                await deleteDoc(doc(getFortuneCollectionRef(), docId));
+
+                console.log(`Fal (${docId}) başarıyla silindi.`);
+            } catch (e) {
+                console.error("Fal silinirken hata:", e);
+            }
+        }
+        
+        /**
+         * Fal belgesine kullanıcı ID'sini ekler veya çıkarır (Kalp/Beğeni bırakma).
+         */
+        window.toggleReaction = async function(docId) {
+            if (!db || !userId) return;
+
+            const falDocRef = doc(getFortuneCollectionRef(), docId);
+
+            try {
+                const snapshot = await getDoc(falDocRef);
+
+                if (snapshot.exists()) {
+                    const data = snapshot.data();
+                    const reactedBy = data.reactedBy || []; 
+
+                    const hasReacted = reactedBy.includes(userId);
+
+                    if (hasReacted) {
+                        await updateDoc(falDocRef, {
+                            reactedBy: arrayRemove(userId)
+                        });
+                        console.log(`Fal (${docId}) beğenisi kaldırıldı.`);
+                    } else {
+                        await updateDoc(falDocRef, {
+                            reactedBy: arrayUnion(userId)
+                        });
+                        console.log(`Fal (${docId}) beğenildi.`);
+                    }
+                }
+            } catch (e) {
+                console.error("Tepki (Kalp) işlemi hatası:", e);
+            }
+        }
+
+        /**
+         * Fal geçmişi için Firestore listener'ı kurar.
+         */
+        function setupFortuneListener() {
+            if (!db || !isAuthReady) return;
+
+            const q = query(getFortuneCollectionRef());
+
+            onSnapshot(q, (snapshot) => {
+                const history = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    history.push({ 
+                        id: doc.id,
+                        userId: data.userId,
+                        userName: data.userName,
+                        text: data.text,
+                        timestamp: new Date(data.timestamp), 
+                        reactedBy: data.reactedBy || [], 
+                    });
+                });
+                
+                history.sort((a, b) => b.timestamp - a.timestamp); 
+
+                renderHistory(history);
+            }, (error) => {
+                console.error("Firestore Fal Akışı Hatası:", error);
+                errorMessageDiv.textContent = `Hata: Fal akışı yüklenemedi: ${error.message}`;
+                errorMessageDiv.classList.remove('hidden');
+                historyList.innerHTML = `<li class="text-red-500 text-center p-2 bg-red-50 rounded-md">Veritabanı bağlantısı kesildi.</li>`;
+            });
+        }
+
+        /**
+         * Fal geçmişi dizisini HTML listesine dönüştürür.
+         */
+        function renderHistory(history) {
+            historyList.innerHTML = ''; 
+
+            if (history.length === 0) {
+                historyList.innerHTML = `<li class="text-gray-500 text-center p-2 bg-gray-50 rounded-md">Henüz çevrilmiş fal yok. Hadi ilk falı siz çevirin!</li>`;
+                return;
+            }
+
+            history.forEach(fal => {
+                const li = document.createElement('li');
+                
+                let timeStr = "Bilinmeyen Zaman";
+                try {
+                     timeStr = new Date(fal.timestamp).toLocaleString('tr-TR', { 
+                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' 
+                    });
+                } catch {}
+
+                const isMyFortune = fal.userId === userId;
+                
+                const reactedBy = fal.reactedBy || []; 
+                const reactionCount = reactedBy.length;
+                const userHasReacted = reactedBy.includes(userId);
+                
+                const heartColor = userHasReacted ? 'text-red-500' : 'text-gray-400 hover:text-red-400';
+                
+                const reactionHtml = `
+                    <div class="flex items-center space-x-1">
+                        <button onclick="toggleReaction('${fal.id}')" title="Kalp Bırak" class="${heartColor} transition duration-150 p-1 rounded-full hover:bg-red-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-.318-.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </button>
+                        <span class="text-sm text-gray-600 font-semibold">${reactionCount}</span>
+                    </div>
+                `;
+
+                let deleteButtonsHtml = '';
+                
+                if (isMyFortune) {
+                    deleteButtonsHtml = `
+                        <button onclick="deleteFortune('${fal.id}', '${fal.userId}')" title="Herkes İçin Kalıcı Sil" class="text-red-400 hover:text-red-600 transition duration-150 p-1.5 rounded-full hover:bg-red-50 ml-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                    `;
+                } else {
+                    deleteButtonsHtml = `<div class="w-10 h-7 ml-2"></div>`; 
+                }
+
+
+                const liClasses = `p-3 bg-white border-l-4 border-blue-400 shadow-sm rounded-lg flex justify-between items-start`;
+                li.className = liClasses;
+                
+                li.innerHTML = `
+                    <div class="flex-grow pr-4">
+                        <p class="text-xs text-gray-700 font-semibold mb-1">${fal.userName} bir fal çekti:</p>
+                        <p class="text-sm font-medium">${fal.text.replace(/\n/g, '<br>')}</p>
+                        <span class="text-xs text-blue-500 whitespace-nowrap">${timeStr}</span>
+                    </div>
+                    <div class="flex flex-col items-end justify-between h-full">
+                        ${deleteButtonsHtml}
+                        <div class="flex-grow"></div> 
+                        <div class="self-end">${reactionHtml}</div>
+                    </div>
+                `;
+                historyList.appendChild(li);
+            });
+        }
+
+        // --- YENİ SOHBET FONKSİYONLARI ---
+
+        /**
+         * Sohbet mesajını Firestore'a kaydeder.
+         */
+        window.sendMessage = async function() {
+            if (!userName || !db || !isAuthReady || !userId) {
+                console.error("Giriş yapılmadı veya Firebase hazır değil.");
+                return;
+            }
+            
+            const messageText = chatInput.value.trim();
+            if (messageText.length === 0) return;
+
+            chatInput.value = ''; // Mesajı gönderdikten sonra kutuyu temizle
+            
+            try {
+                await addDoc(getChatCollectionRef(), {
+                    userId: userId,
+                    userName: userName,
+                    text: messageText,
+                    timestamp: new Date().toISOString(),
+                });
+                console.log("Sohbet mesajı kaydedildi.");
+                
+                // Klavyeyi kapattıktan sonra chat alanının en alta kaymasını sağlar.
+                const container = document.getElementById('chat-container');
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
+
+            } catch (e) {
+                console.error("Sohbet mesajı kaydetme hatası:", e);
+                alert("Mesaj gönderilemedi: " + e.message);
+            }
+        }
+
+        /**
+         * Sohbet mesajları için Firestore listener'ı kurar (Yeni mesaja göre ses çalar).
+         */
+        function setupChatListener() {
+            if (!db || !isAuthReady) return;
+
+            const q = query(getChatCollectionRef()); 
+            let initialLoad = true; 
+
+            onSnapshot(q, (snapshot) => {
+                
+                const hasNewMessages = snapshot.docChanges().some(change => 
+                    change.type === "added" && change.doc.data().userId !== userId
+                );
+                
+                const messages = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    messages.push({
+                        id: doc.id,
+                        userName: data.userName,
+                        text: data.text,
+                        timestamp: new Date(data.timestamp),
+                        isMine: data.userId === userId 
+                    });
+                });
+
+                messages.sort((a, b) => a.timestamp - b.timestamp);
+                
+                renderChatMessages(messages.slice(-20), initialLoad); 
+                
+                if (hasNewMessages) {
+                    playNotificationSound();
+                }
+
+                initialLoad = false;
+
+            }, (error) => {
+                console.error("Firestore Sohbet Akışı Hatası:", error);
+                chatMessagesList.innerHTML = `<li class="text-red-500 text-center text-sm">Sohbet yüklenemedi.</li>`;
+                initialLoad = false;
+            });
+        }
+
+        /**
+         * Sohbet mesajı dizisini HTML listesine dönüştürür.
+         * @param {Array} messages - Mesaj dizisi.
+         * @param {boolean} isInitialLoad - İlk yükleme olup olmadığını belirtir.
+         */
+        function renderChatMessages(messages, isInitialLoad) {
+            chatMessagesList.innerHTML = '';
+            
+            if (messages.length === 0) {
+                chatMessagesList.innerHTML = `<li class="text-center text-gray-500 text-sm">İlk mesajı siz atın! 👋</li>`;
+                return;
+            }
+
+            messages.forEach(msg => {
+                const li = document.createElement('li');
+                const timeStr = new Date(msg.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+                const messageClass = msg.isMine 
+                    ? 'bg-teal-100 self-end text-right border-teal-400' 
+                    : 'bg-white self-start text-left border-blue-400';
+                
+                const usernameColor = msg.isMine ? 'text-teal-600' : 'text-blue-600';
+
+                li.className = `flex ${msg.isMine ? 'justify-end' : 'justify-start'}`; 
+                li.innerHTML = `
+                    <div class="max-w-[80%] p-3 rounded-xl shadow-sm border border-l-4 ${messageClass}">
+                        <p class="text-xs font-bold ${usernameColor} mb-0.5">${msg.userName}</p>
+                        <p class="text-sm text-gray-800 break-words">${msg.text}</p>
+                        <span class="text-xs text-gray-500 mt-1 block">${timeStr}</span>
+                    </div>
+                `;
+                chatMessagesList.appendChild(li);
+            });
+
+            // YENİ SCROLL MANTIĞI: Sadece yeni mesaj gönderildiğinde veya ilk açılışta kaydır.
+            // Bu, mobil klavye açıldığında istenmeyen kaymaları önler.
+            const container = document.getElementById('chat-container');
+            if (container && (isInitialLoad || messages.some(msg => msg.isMine))) {
+                setTimeout(() => {
+                    container.scrollTop = container.scrollHeight;
+                }, 100); 
+            }
+        }
+
+        // Uygulamayı Başlat
+        window.onload = function() {
+            initFirebase();
+            usernameInput.focus(); 
+        }
+
+    </script>
+</body>
+</html>
