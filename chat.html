@@ -50,7 +50,7 @@
         
         <header class="bg-teal-600 text-white p-4 flex justify-between items-center shadow-lg flex-shrink-0">
             <h1 class="text-xl font-bold">Genel Sohbet Odası</h1>
-            <button onclick="window.location.href='index.html';"
+            <button onclick="window.location.replace('index.html');"
                     class="bg-teal-500 hover:bg-teal-700 text-white font-semibold py-1 px-3 rounded-lg transition duration-150">
                 Ana Sayfaya Dön
             </button>
@@ -145,7 +145,7 @@
             const storedName = localStorage.getItem('userName');
             if (!storedName || !getFirestore(app) || !userId) {
                 alert("Lütfen önce ana sayfadan giriş yapın.");
-                window.location.href = 'index.html';
+                window.location.replace('index.html'); // Hata durumunda güçlü yönlendirme
                 return;
             }
             
@@ -269,7 +269,7 @@
             // Kullanıcı adı kontrolü
             if (!localStorage.getItem('userName')) {
                 alert("Lütfen önce ana sayfadan giriş yapın.");
-                window.location.href = 'index.html';
+                window.location.replace('index.html'); // Buradan da güçlü yönlendirme
                 return;
             }
 
@@ -297,7 +297,7 @@
                         setupChatListener(); 
                     } else {
                         alert("Oturum açılamadı. Lütfen tekrar deneyin.");
-                        window.location.href = 'index.html';
+                        window.location.replace('index.html'); // Buradan da güçlü yönlendirme
                     }
                 });
 
@@ -306,7 +306,7 @@
             } catch (error) {
                 console.error("Uygulama Başlatma Hatası:", error);
                 alert("Sohbet yüklenirken kritik hata oluştu: " + error.message);
-                window.location.href = 'index.html';
+                window.location.replace('index.html'); // Buradan da güçlü yönlendirme
             }
         }
         
