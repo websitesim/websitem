@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sakız Falı | Sohbetli</title>
+    <title>Sakız Falı</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -20,7 +20,7 @@
             position: relative;
         }
 
-        /* Bulut Animasyonları (Estetik amaçlı) */
+        /* Bulut Animasyonları */
         .cloud {
             position: absolute;
             background: #fff;
@@ -53,7 +53,7 @@
         /* Başlık stili */
         h1 {
             z-index: 10;
-            color: #3182CE; /* Mavi ton */
+            color: #3182CE; 
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
 
@@ -68,18 +68,14 @@
             max-width: 450px;
         }
         
-        /* Fal Sonucu Alanı, eski sarı haline döndürüldü */
         #result {
-            /* Orijinal Fal Çekme Kutusu Stilleri */
-            padding: 1rem; /* p-4 */
-            border-left-width: 4px; /* border-l-4 */
-            border-color: #f59e0b; /* border-yellow-500 */
-            background-color: #fef3c7; /* bg-yellow-100 */
-            border-radius: 0.5rem; /* rounded-lg */
+            padding: 1rem; 
+            border-left-width: 4px; 
+            border-color: #f59e0b; 
+            background-color: #fef3c7; 
+            border-radius: 0.5rem; 
         }
 
-
-        /* Buton stilleri */
         button {
             transition: all 0.3s ease;
             transform: scale(1);
@@ -139,6 +135,11 @@
             Falınız Burada Gözükecek...
         </p>
         
+        <button onclick="window.location.href='chat.html'"
+                class="w-full mt-6 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg transition transform hover:scale-[1.01]">
+            💬 Genel Sohbet Odasına Git
+        </button>
+        
         <h3 class="text-2xl font-bold mt-8 mb-4 border-b pb-2 text-teal-700">Genel Fal Akışı (Herkese Açık)</h3>
         
         <div id="history-container" class="overflow-y-auto" style="height: 400px;"> 
@@ -148,26 +149,7 @@
         </div>
         <p class="text-xs text-red-500 mt-2 text-center hidden" id="error-message">Hata: Veritabanı bağlantısı kurulamadı. Firebase ayarlarınızı kontrol edin.</p>
         
-        <h3 class="text-2xl font-bold mt-8 mb-4 border-b pb-2 text-teal-700">Genel Sohbet Odası</h3>
-        
-        <div id="chat-container" class="overflow-y-auto bg-gray-50 p-3 rounded-lg border border-gray-200" style="height: 450px;">
-            <ul id="chat-messages" class="space-y-3">
-                <li class="text-center text-gray-500 text-sm">Sohbet yükleniyor...</li>
-            </ul>
-        </div>
-
-        <div class="mt-4 flex space-x-2 items-end">
-            <textarea id="chat-input" placeholder="Herkese bir şeyler yaz..."
-               class="flex-grow p-3 border-2 border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150 resize-none overflow-hidden"
-               maxlength="500"
-               rows="1" 
-               oninput="autoResizeTextarea(this)"></textarea>
-            <button type="button" onclick="sendMessage()"
-                    class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-150 flex-shrink-0">
-                Gönder
-            </button>
-        </div>
-        </div>
+    </div>
 
     <script type="module">
         // Firebase Modüllerini İçe Aktar
@@ -176,7 +158,6 @@
         import { getFirestore, doc, addDoc, onSnapshot, collection, query, deleteDoc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        // Hata ayıklama modunu aç
         setLogLevel('debug'); 
 
         let app;
@@ -188,7 +169,7 @@
         let isListenersSetup = false; 
         let notificationPermissionGranted = (('Notification' in window) && Notification.permission === 'granted'); 
 
-        // --- VERİTABANI BAĞLANTI AYARLARI (MEVCUT AYARLARINIZ) ---
+        // --- VERİTABANI BAĞLANTI AYARLARI ---
         const firebaseConfig = {
           apiKey: "AIzaSyCQ8ZJdTmdIxGjzcxoc08w7hl0SfAyekH8",
           authDomain: "skzfli.firebaseapp.com",
@@ -212,62 +193,13 @@
         const errorMessageDiv = document.getElementById('error-message');
         const spinButton = document.getElementById('spin-button');
         const authStatusElement = document.getElementById('auth-status');
-
-        // YENİ SOHBET ELEMENTLERİ
-        const chatMessagesList = document.getElementById('chat-messages');
-        const chatInput = document.getElementById('chat-input');
         
-        // --- Fal Metinleri (Kısaltıldı) ---
         const fortunes = ["Aşkın etmiş onu şair\nHer gün yazar bir şiir\nSensin ilham perisi\nTüm satırlar sana dair", "Fazla şey beklemez senden\nİster hayatında çekidüzen\nEvliliktir bunun sonu\nSeversen onu gönülden", "Boynunda var bir kolye\nİki resim bağlı zincire\nBiri o, diğeri sen\nAçar bakar her saniye", "Atmışsın ona bir bakış\nGözlerine tutulmuş kalmış\nKendini bulmuş o anda\nAşkın ona pek yaramış", "Senden bekler hareket\nEdemez konuşmaya cesaret\nSen bir adım atsan ona\nO on adım gelecek", "Bir görünüp bir kayboluyor\nOnu yakalamak zor mu zor\nGöremeyince üzülüyorsun\nSenin de yüreğine düşmüş kor", "Çıkar sık sık şehir dışına\nBir gün gelecek senin oraya\nKopamayacak sonra senden\nYerleşecek evinin yanına", "Her gün bakar aynaya\nGüzel görünmek için sana\nBeğendirecek kendini\nGelirseniz yan yana", "Bir ev döşemiş zevki süper\nBazen pop bazen caz dinler\nHayvanlara sevgisinden\nOkumuş olmuş veteriner", "Onunla tez geçiyor saat\nKonuşmaya kalmıyor fırsat\nSana söyleyecekleri var\nBu kez zamanı sen ayır.", "Sevdiğin biraz duygusal\nAşkınız güzel bir masal\nNazik davran aman ona\nKalbi sanki kristal", "Aranızda var bir resmiyet\nAma değişecek bu vaziyet\nÇok uzun sürmeyecek\nOluşacak samimiyet", "Suya muhtaçtır her yonca\nAnlarsın yalnız kalınca\nTatsızlıklar atlatılır\nBir taraf alttan alınca", "En önemli vasfı sabır\nDur durak bilmeden çalışır\nBir ikinci lig kulübünde\nFutbol oynuyor beş yıldır", "Seni senden çok sever\nİste dünyayı ayağına serer\nSeni güzel yaşatacak\nVermeyecek hiç keder", "Aşkta olmaz gurur\nO sana sen ona mecbur\nHatasını affettiğinde\nBulacaksınız birlikte huzur", "Sabrın sonu selamet\nBu işte var keramet\nHemen pes etmezsen\nKuracaksınız muhabbet", "Siz tanışalı üç gün olmuş\nKalbine bir sıcaklık dolmuş\nTekrar görüşür müyiz diye\nZavallım sararıp solmuş", "Dinliyor kalbinin sesini\nKapatıp güzel gözlerini\nDüşünüyor saatlerce\nSensin en büyük hayali", "Aşk başlıyor yeni yeni\nO, tanımak istiyor seni\nSize neler getirecek\nBu güzel aşk serüveni", "Sevda yolunda yürü dimdik\nKolaydır nişan, evlilik\nO gerçekten doğru seçim\nBizden sana kocaman tebrik", "Huyunuz suyunuz aynı\nEtmez hiç vıdı vıdı\nSenin için biçilmiş kaftan\nSevginiz de karşılıklı", "Bilir kadrini kıymetini\nÂşık sana bir hayli\nBelki haberin yok ama\nO senden pek ümitli", "Geçer aynı yolları\nBir aşağı bir yukarı\nİşi mi var sandın\nSeni görmek amacı", "Dertlenir kavuşanları görünce\nDüşünür seni her gece\nCesaretini toplayacak\nSen de onu beğenince", "Sevdiği yerler: Bodrum, Kaş\nTuttuğu takım Beşiktaş\nHalden anlar birisidir\nHem eş olur hem arkadaş", "Bir uzun yolculuktur yaşam\nBazen yas olur bazen bayram\nGüzel günler çok yakında\nKederlere dalma her akşam", "Boylu boslu, kalıplı\nPek de sıcakkanlı\nKalbini alacak yakında\nBu genç çok kararlı", "Tatlıdır ondaki sertlik\nKızınca bakıyor dik dik\nSen bekletmeyi seversin\nAma seninki pek dakik", "Duy şu çarpan kalbin sesini\nSanki söyler senin ismini\nO hep böyle çarpacak\nSürecek aşkı ebedi", "Parayla olmaz saadet\nAşkı aramaya devam et\nSen o yârdan ayrılırsan\nVardır bunda bir keramet", "Acaba bu bir sihir mi\nNe beş ne on ne yirmi\nSık sık karşılaşıyorsunuz\nBu tesadüf olabilir mi", "Bir gece tertip edilecek\nBu geceye o da gelecek\nO, davetlileri unutup\nSeninle konuşup gülecek", "Onun yüreği şimdi bir kuş\nSanırsın bir hazine bulmuş\nO bakarken gülümsemişsin\nDünyalar hemen onun olmuş", "Dolaşmaya çıkar, yağsa yağmur\nÇiçeklerle, kuşlarla konuşur\nSeni de tez değiştirecek\nOndaki bu sihir, bu uğur", "Yok dünyada aşk gibi bir haz\nİnsanda dertten eser kalmaz\nHislerini ona açmadıkça\nEminim gönlün huzur bulmaz", "“Tanımadan olmaz” denir\nKalp doğru insanı bilir\nGit çekinmeden teklif et\nBazen aşk sonradan gelir", "Sevmez o ince hesapları\nDostudur onun kitapları\nBu yakışıklıda saklıdır\nSorularının cevapları", "Gözlerine kurbanım\nDudaklarına hayranım\nMerak etme sevgilim\nDeğmez sana Nazar’ım", "Gezmez hiç geceleri\nOynamaz kumar, içmez içki\nİyi aile çocuğudur\nOlmasın aklında çelişki", "Yağmur yağmaz her gün\nDağılır gider bu hüzün\nBir gün bulacak seni de\nAşk, para, bir de ün", "Çizer resim karakalem\nHayran ona cümle alem\nKaçırmamak için seni\nAlmış bir dizi önlem", "Hastaymış ne zamandır\nGöstermiş büyük sabır\nAslan gibi, bulacak seni\nArtık içi kıpır kıpır", "Kahramanın var hayali\nİstersin onun gibi cesur biri\nDenizleri aşıp gelecek\nBulacak seni o bahriyeli", "Şansını kaçırdı sanmış\nÜzüntüden solmuş sararmış\nSeni yalnız görünce\nYine hayata bağlanmış", "Koluna taktı mı sepeti\nDoldurur içine vişneleri\nSana da ikram edecek\nGöreceksin pek ilgili", "Bu çok güzel bir meyve\nAşkınızdan size hediye\nBüyüyecek neşeli mutlu\nHayırlı olacak millete", "Gelecek son dakikada haber\nVar sıcak gelişmeler\nAğızdan ağıza dolaşacak\nKavuşacaksınız bu sefer", "Yemeği yapar lezzetli\nElleri çok marifetli\nTutacak elini yakında\nOlacak sana sevgili", "Hayatında herşey kararında\nAma gelişme var pek yakında\nTanışacaksın bir esmerle\nDemeyeceksin hiç elveda", "Aşkından düşmüş bitap\nÇeker her gün azap\nGel evet de biçareye\nKazan büyük sevap", "Bir sağa döner bir sola\nUyuyamaz gece yatakta\nİçi rahat değil ki\nGöremezse seni rüyada", "Annesi üzerine titrer\nKüçük çocuk gibi sever\nOğlu çok kıymetli\nKendi gibi gelin ister", "Bu kadar karamsar olma\nKafanı yok yere yorma\nGençliğinin baharında\nGül gibi sararıp solma", "Dama attım değnek\nOrtası benek benek\nGeçti kızlar sürüsü\nHangisini beğenek", "Duman dumanı arar\nDuman dağları sarar\nCeplerim şeker dolu\nGözlerim seni arar", "Yaşı senden az büyük\nParmağında yok yüzük\nSeninle tanışmak ister\nİçinde yok hiç kötülük", "Oynar hergün basketbol\nBulacak sonunda bir yol\nKalbine bir ok atacak\nAlacak gönlünde başrol", "İster büyü de ister sır\nNe olacak biz bilemeyiz\nAma sen yaşayacaksın\nDoğum gününden çifte sürpriz", "“Akrep” hep yaz olsun ister\nOna göre değil gam-keder\nBir sürpriz yapmak istersen\nOna bir müzik kutusu ver", "Sanma aranız uçurum\nYapma şimdiden yorum\nBulacak bir yolunu\nDiyecek seni seviyorum", "Değiştirmekle meşgul imajını\nTarar her gün saçını başını\nHepsi gözüne girmek için\nSana ne zamandır sevdalı", "Yolculuk var pek yakında\nDiyeceksin ona elveda\nAma uzun sürmez ayrılık\nKörüklenir kara sevda", "Sürekli ona yakın dur\nDostlarıyla yakınlık kur\nHoşlandığı şeyleri öğren\nBu iş kendiliğinden olur", "Git yanına o müsait\nAranızda yok engel geçit\nOda ister senle olmak\nÇak aşkına bir kibrit", "Aşka sünger çekmiş\nKalbi çok zedelenmiş\nSeninle geçmişi unutacak\nÇünkü seni çok beğenmiş", "Töre de ne diyecek\nSonra isyan edecek\nSeninle olmak için\nKuralları delecek", "Gezdirir parkta köpeğini\nHer Salı ve Cumartesi\nRastlaşınca patika yolda\nGelecek aşk çok ani", "Hayır dersen gelmez işine\nRazı olmaz kaderine\nBaşkasında gözü yok\nOnun gönlü hep sende", "Verecek sana bır çiçek\nKoklayacaksın onu her gece\nDoyamayacaksın ona\nTabi senin o çiçek", "İçinde şüphe kalmamış\nSana olan aşkını anlamış\nEvet dersen sen de\nGelecek sana tıpış tıpış", "Çabuk geçer sayılı gün\nDeğil ki bu ebedi sürgün\nPeri masallarındaki gibi\nGörünüyor bir düğün", "Üzüm toplar bağda\nGelecek sana tenhada\nAşkını ilan edecek\nSenin de gönlün onda", "Onun kalbi çok geniş\nSana aşkı görülmemiş\nSen ona evet demeden\nO sana kalbini vermiş", "Kopacak bir tayfun\nOlacak sana mecnun\nBekle gelecek teklif\nOkuldan olunca mezun", "Gözü senin üzerinde\nAçılacak ileride\nCesaretini toplayıp\nTakacak beşibiyerde", "Görmüş seni pazarda\nSen seçerken lahana\nHer hafta gelir artık\nGöreyim diye bir daha", "Gelecek uzun yoldan\nYapacak güzel bir plan\nGönlün ona kayınca\nEdecek aşkını ilan", "Gelecek bütün kalbiyle\nSöz verecek olmaya seninle\nBirlikte uzun yıllar geçecek\nAşkınız ölmeyecek evlilikle", "Konuşması çok canayakın\nAma bugünlerde biraz dalgın\nÂşık olmuş sana\nİçinde var büyük yangın", "Yaz gelecek hayatına\nBaktığında sen ona\nBuzları çözülecek kalbinin\nDayanamaz bu yangına", "Uzun uzun kirpikleri\nDelecek kalbini\nBir gülüşün yetecek\nDiyecek sana gel bari", "Ne zaman baksan içi gider\nGözlerinin içi güler\nKalbi çarpar seninle\nOnun burcu ikizler", "İnadını kır bu sefer\nGel bir şans daha ver\nDostluktan öte sevgisi\nBir kez denemeye değer", "Sen gül deyince ona\nAlır onu bu kahkaha\nNe desen fazlasını yapar\nDerler buna kara sevda", "Gelir gider arada bir\nBirkaç gün olur misafir\nSeni görünce bu sefer\nAşkı olacak bir nehir", "Arkandan koşmuş yetişememiş\nBağırmış sesi kesilmiş\nDuy artık şu biçareyi\nAşkın onu derbeder etmiş", "İstemez saçları takma\nKaşı, gözü, burnu yapma\nGüzel olsun senin gibi\nO da doğallıktan yana", "Onu bezdiremezsin sen\nAnlıyor tam altı dilden\nHem maaşı hem huyu güzel\nŞaka değil, o bir çevirmen", "Yâr diyecek “Gözümün nuru\niste yağdırayım yağmuru”\nMertçe seviyor, âşık sana\nArasan bulunmaz kusuru", "Gönül işinde “sabır” diyor\nElbet bir bekleyen vardır diyor\nBaş göz etmeye çalışanlara\nBu iş böyle olmaz, hayır diyor", "Yıldız misali, mavi mavi\nTutuşmuş bu aşkın alevi\nBaban da razı bu işe ama\nBilirsin: kız evi naz evi", "Yanından su gibi akıyor\nGüya çaktırmadan bakıyor\nSenin umursamaz hallerin\nOnun canını çok sıkıyor", "Eksik olmaz dilinden iltifat\nYaptığı iş de ihracat\nHastalanırsan korkma\nEder bir ömür refakat", "Falda bir kutu gördük\nBu pembe kutu küçücük\nBir hediye almış sana\nBir kolye ya da bir yüzük", "Ona gülen gözlerle baktın\nİyi bir intiba bıraktın\nYanmaya hazır kalbinde\nParlak bir kavılcım çaktın", "Ondan çok hoşlandıysan eğer\nBirkaç hafta beklemeye değer\nHislerinden emin olmak için\nHem ona hem kendine zaman ver", "Ev bark almış çocukcağız\nMesut olmak istiyor yalnız\nİsmi baş harflerde saklı\nReddetmek onu, imkânsız", "Tekstil ürünleri satıyor\nParasına para katıyor\nSana saf bir aşkla bağlanmış\nYüreği seninle atıyor", "Cesaretin yoksa şayet\nHoşlandığını belli et\nOnun sana tavırları\nBence açık bir davet"];
         
-        /**
-         * YENİ: Textarea'nın içeriğe göre yüksekliğini otomatik ayarlar.
-         */
-        window.autoResizeTextarea = function(element) {
-            element.style.height = 'auto'; // Önce yüksekliği sıfırla
-            element.style.height = (element.scrollHeight) + 'px'; // Sonra içeriğe göre ayarla
-            
-            // Yüksekliği ayarladıktan sonra sohbeti en alta kaydırarak mobil kaymayı engeller.
-            const container = document.getElementById('chat-container');
-            if (container) {
-                container.scrollTop = container.scrollHeight;
-            }
-        }
-
-        /**
-         * Kısa bir bildirim sesi çalar.
-         */
-        function playNotificationSound() {
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(800, audioContext.currentTime); 
-                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01); 
-                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.2); 
-
-                oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.2); 
-                
-            } catch (e) {
-                console.warn("Ses çalma hatası (Tarayıcı kısıtlamaları olabilir):", e);
-            }
-        }
-
-        /**
-         * Sistem Bildirim iznini ister.
-         */
         function requestNotificationPermission() {
             if (!('Notification' in window) || Notification.permission !== 'default') {
                 return;
             }
-
             Notification.requestPermission().then(permission => {
                 if (permission === 'granted') {
                     notificationPermissionGranted = true;
@@ -283,9 +215,6 @@
             });
         }
 
-        /**
-         * Verilen metni Title Case (Her kelimenin ilk harfi büyük) formatına çevirir.
-         */
         function toTitleCase(str) {
             if (!str) return '';
             return str.replace(/\w\S*/g, function(txt) {
@@ -293,19 +222,10 @@
             });
         }
         
-        // Firestore koleksiyon yollarını oluşturur
         function getFortuneCollectionRef() {
             return collection(db, `artifacts/${customAppId}/public/data/fortunes`);
         }
         
-        // Sohbet koleksiyonu yolunu oluşturur
-        function getChatCollectionRef() {
-            return collection(db, `artifacts/${customAppId}/public/data/chat`);
-        }
-
-
-        // --- Firebase Başlangıç ve Yetkilendirme ---
-
         async function initFirebase() {
             try {
                 app = initializeApp(firebaseConfig);
@@ -320,7 +240,6 @@
                         
                         if (!isListenersSetup) {
                             setupFortuneListener();
-                            setupChatListener(); 
                             isListenersSetup = true;
                         }
 
@@ -346,8 +265,6 @@
             }
         }
 
-        // --- Kullanıcı Arayüzü ve Giriş/Çıkış ---
-
         function showMainScreen() {
             if (!userName) return; 
 
@@ -357,11 +274,6 @@
             
             spinButton.disabled = !isAuthReady;
             spinButton.textContent = isAuthReady ? "Fal Çek!" : "Yükleniyor...";
-
-            const chatContainer = document.getElementById('chat-container');
-            if(chatContainer) {
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }
         }
 
         window.login = function() {
@@ -399,8 +311,6 @@
         }
 
 
-        // --- Firestore Fal İşlemleri ---
-        
         window.spinFal = async function() {
             if (fortunes.length === 0 || !db || !isAuthReady || !userId || spinButton.disabled) {
                 if (!isAuthReady) console.error("Firebase Auth hazır değil.");
@@ -529,143 +439,6 @@
             });
         }
 
-        // --- YENİ SOHBET FONKSİYONLARI ---
-
-        /**
-         * Sohbet mesajını Firestore'a kaydeder.
-         */
-        window.sendMessage = async function() {
-            if (!userName || !db || !isAuthReady || !userId) {
-                console.error("Giriş yapılmadı veya Firebase hazır değil.");
-                return;
-            }
-            
-            const messageText = chatInput.value.trim();
-            if (messageText.length === 0) return;
-
-            chatInput.value = ''; 
-            
-            try {
-                await addDoc(getChatCollectionRef(), {
-                    userId: userId,
-                    userName: userName,
-                    text: messageText,
-                    timestamp: new Date().toISOString(),
-                });
-
-                // MOBİL KAYMA DÜZELTMESİ: Klavyeyi kapatmaya zorla, sonra kaydır.
-                const container = document.getElementById('chat-container');
-                if (container) {
-                    chatInput.blur(); 
-                    container.scrollTop = container.scrollHeight;
-                }
-                
-                // Textarea'nın yüksekliğini tekrar tek satıra indir
-                chatInput.style.height = 'auto';
-
-            } catch (e) {
-                console.error("Sohbet mesajı kaydetme hatası:", e);
-                alert("Mesaj gönderilemedi: " + e.message);
-            }
-        }
-
-        /**
-         * Sohbet mesajları için Firestore listener'ı kurar (Yeni mesaja göre ses çalar).
-         */
-        function setupChatListener() {
-            if (!db || !isAuthReady) return;
-
-            const q = query(getChatCollectionRef(), orderBy('timestamp', 'asc')); 
-            let initialLoad = true; 
-
-            onSnapshot(q, (snapshot) => {
-                
-                const changes = snapshot.docChanges().filter(change => change.type === "added");
-                
-                const hasNewMessagesFromOthers = changes.some(change => 
-                    change.doc.data().userId !== userId
-                );
-                const newestMessage = changes.length > 0 ? changes[changes.length - 1].doc.data() : null;
-                
-                const messages = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    messages.push({
-                        id: doc.id,
-                        userName: data.userName,
-                        text: data.text,
-                        timestamp: new Date(data.timestamp),
-                        isMine: data.userId === userId 
-                    });
-                });
-                
-                renderChatMessages(messages.slice(-20), initialLoad); 
-                
-                // YENİ BİLDİRİM MANTIĞI:
-                if (hasNewMessagesFromOthers && newestMessage) {
-                    if (notificationPermissionGranted && document.hidden) {
-                        // Sekme arka planda ise sistem bildirimi gönder (Ses de içerir)
-                        new Notification(`Yeni Mesaj: ${newestMessage.userName}`, {
-                            body: newestMessage.text.substring(0, 50) + '...',
-                            icon: 'https://i.imgur.com/your-app-icon.png'
-                        });
-                    } else {
-                        // Sekme önde ise sadece kendi bip sesimizi çal
-                        playNotificationSound();
-                    }
-                }
-
-                initialLoad = false;
-
-            }, (error) => {
-                console.error("Firestore Sohbet Akışı Hatası:", error);
-                chatMessagesList.innerHTML = `<li class="text-red-500 text-center text-sm">Sohbet yüklenemedi.</li>`;
-                initialLoad = false;
-            });
-        }
-
-        /**
-         * Sohbet mesajı dizisini HTML listesine dönüştürür.
-         */
-        function renderChatMessages(messages, isInitialLoad) {
-            chatMessagesList.innerHTML = '';
-            
-            if (messages.length === 0) {
-                chatMessagesList.innerHTML = `<li class="text-center text-gray-500 text-sm">İlk mesajı siz atın! 👋</li>`;
-                return;
-            }
-
-            messages.forEach(msg => {
-                const li = document.createElement('li');
-                const timeStr = new Date(msg.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-
-                const messageClass = msg.isMine 
-                    ? 'bg-teal-100 self-end text-right border-teal-400' 
-                    : 'bg-white self-start text-left border-blue-400';
-                
-                const usernameColor = msg.isMine ? 'text-teal-600' : 'text-blue-600';
-
-                li.className = `flex ${msg.isMine ? 'justify-end' : 'justify-start'}`; 
-                li.innerHTML = `
-                    <div class="max-w-[80%] p-3 rounded-xl shadow-sm border border-l-4 ${messageClass}">
-                        <p class="text-xs font-bold ${usernameColor} mb-0.5">${msg.userName}</p>
-                        <p class="text-sm text-gray-800 break-words">${msg.text.replace(/\n/g, '<br>')}</p>
-                        <span class="text-xs text-gray-500 mt-1 block">${timeStr}</span>
-                    </div>
-                `;
-                chatMessagesList.appendChild(li);
-            });
-
-            // SCROLL DÜZELTMESİ: Sadece ilk açılışta veya bizim gönderdiğimiz mesajda kaydır.
-            const container = document.getElementById('chat-container');
-            if (container && (isInitialLoad || (messages.length > 0 && messages[messages.length - 1].isMine))) {
-                setTimeout(() => {
-                    container.scrollTop = container.scrollHeight;
-                }, 100); 
-            }
-        }
-
-        // Uygulamayı Başlat
         window.onload = function() {
             initFirebase();
             usernameInput.focus(); 
