@@ -141,7 +141,7 @@
         
         <h3 class="text-2xl font-bold mt-8 mb-4 border-b pb-2 text-teal-700">Genel Fal Akışı (Herkese Açık)</h3>
         
-        <div id="history-container" class="max-h-64 overflow-y-auto">
+        <div id="history-container" class="overflow-y-auto" style="height: 300px;"> 
             <ul id="history" class="space-y-2">
                 <li class="text-gray-500 text-sm text-center">Yükleniyor...</li>
             </ul>
@@ -156,11 +156,14 @@
             </ul>
         </div>
 
-        <div class="mt-4 flex space-x-2">
-            <input type="text" id="chat-input" placeholder="Herkese bir şeyler yaz..."
-                   class="flex-grow p-3 border-2 border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150"
-                   maxlength="500"> <button type="button" onclick="sendMessage()"
-                    class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-150">
+        <div class="mt-4 flex space-x-2 items-end">
+            <textarea id="chat-input" placeholder="Herkese bir şeyler yaz..."
+               class="flex-grow p-3 border-2 border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150 resize-none overflow-hidden"
+               maxlength="500"
+               rows="1" 
+               oninput="autoResizeTextarea(this)"></textarea>
+            <button type="button" onclick="sendMessage()"
+                    class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-150 flex-shrink-0">
                 Gönder
             </button>
         </div>
@@ -170,7 +173,7 @@
         // Firebase Modüllerini İçe Aktar
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, addDoc, onSnapshot, collection, query, deleteDoc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, addDoc, onSnapshot, collection, query, deleteDoc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // Hata ayıklama modunu aç
@@ -183,7 +186,7 @@
         let userName = "";
         let isAuthReady = false; 
         let isListenersSetup = false; 
-        let notificationPermissionGranted = false; // Bildirim izni durumunu takip et
+        let notificationPermissionGranted = (('Notification' in window) && Notification.permission === 'granted'); 
 
         // --- VERİTABANI BAĞLANTI AYARLARI (MEVCUT AYARLARINIZ) ---
         const firebaseConfig = {
@@ -214,112 +217,25 @@
         const chatMessagesList = document.getElementById('chat-messages');
         const chatInput = document.getElementById('chat-input');
         
-        // --- Fal Metinleri (Değişmedi) ---
-        const fortunes = [
-            "Aşkın etmiş onu şair\nHer gün yazar bir şiir\nSensin ilham perisi\nTüm satırlar sana dair",
-            "Fazla şey beklemez senden\nİster hayatında çekidüzen\nEvliliktir bunun sonu\nSeversen onu gönülden",
-            "Boynunda var bir kolye\nİki resim bağlı zincire\nBiri o, diğeri sen\nAçar bakar her saniye",
-            "Atmışsın ona bir bakış\nGözlerine tutulmuş kalmış\nKendini bulmuş o anda\nAşkın ona pek yaramış",
-            "Senden bekler hareket\nEdemez konuşmaya cesaret\nSen bir adım atsan ona\nO on adım gelecek",
-            "Bir görünüp bir kayboluyor\nOnu yakalamak zor mu zor\nGöremeyince üzülüyorsun\nSenin de yüreğine düşmüş kor",
-            "Çıkar sık sık şehir dışına\nBir gün gelecek senin oraya\nKopamayacak sonra senden\nYerleşecek evinin yanına",
-            "Her gün bakar aynaya\nGüzel görünmek için sana\nBeğendirecek kendini\nGelirseniz yan yana",
-            "Bir ev döşemiş zevki süper\nBazen pop bazen caz dinler\nHayvanlara sevgisinden\nOkumuş olmuş veteriner",
-            "Onunla tez geçiyor saat\nKonuşmaya kalmıyor fırsat\nSana söyleyecekleri var\nBu kez zamanı sen ayır.",
-            "Sevdiğin biraz duygusal\nAşkınız güzel bir masal\nNazik davran aman ona\nKalbi sanki kristal",
-            "Aranızda var bir resmiyet\nAma değişecek bu vaziyet\nÇok uzun sürmeyecek\nOluşacak samimiyet",
-            "Suya muhtaçtır her yonca\nAnlarsın yalnız kalınca\nTatsızlıklar atlatılır\nBir taraf alttan alınca",
-            "En önemli vasfı sabır\nDur durak bilmeden çalışır\nBir ikinci lig kulübünde\nFutbol oynuyor beş yıldır",
-            "Seni senden çok sever\nİste dünyayı ayağına serer\nSeni güzel yaşatacak\nVermeyecek hiç keder",
-            "Aşkta olmaz gurur\nO sana sen ona mecbur\nHatasını affettiğinde\nBulacaksınız birlikte huzur",
-            "Sabrın sonu selamet\nBu işte var keramet\nHemen pes etmezsen\nKuracaksınız muhabbet",
-            "Siz tanışalı üç gün olmuş\nKalbine bir sıcaklık dolmuş\nTekrar görüşür müyiz diye\nZavallım sararıp solmuş",
-            "Dinliyor kalbinin sesini\nKapatıp güzel gözlerini\nDüşünüyor saatlerce\nSensin en büyük hayali",
-            "Aşk başlıyor yeni yeni\nO, tanımak istiyor seni\nSize neler getirecek\nBu güzel aşk serüveni",
-            "Sevda yolunda yürü dimdik\nKolaydır nişan, evlilik\nO gerçekten doğru seçim\nBizden sana kocaman tebrik",
-            "Huyunuz suyunuz aynı\nEtmez hiç vıdı vıdı\nSenin için biçilmiş kaftan\nSevginiz de karşılıklı",
-            "Bilir kadrini kıymetini\nÂşık sana bir hayli\nBelki haberin yok ama\nO senden pek ümitli",
-            "Geçer aynı yolları\nBir aşağı bir yukarı\nİşi mi var sandın\nSeni görmek amacı",
-            "Dertlenir kavuşanları görünce\nDüşünür seni her gece\nCesaretini toplayacak\nSen de onu beğenince",
-            "Sevdiği yerler: Bodrum, Kaş\nTuttuğu takım Beşiktaş\nHalden anlar birisidir\nHem eş olur hem arkadaş",
-            "Bir uzun yolculuktur yaşam\nBazen yas olur bazen bayram\nGüzel günler çok yakında\nKederlere dalma her akşam",
-            "Boylu boslu, kalıplı\nPek de sıcakkanlı\nKalbini alacak yakında\nBu genç çok kararlı",
-            "Tatlıdır ondaki sertlik\nKızınca bakıyor dik dik\nSen bekletmeyi seversin\nAma seninki pek dakik",
-            "Duy şu çarpan kalbin sesini\nSanki söyler senin ismini\nO hep böyle çarpacak\nSürecek aşkı ebedi",
-            "Parayla olmaz saadet\nAşkı aramaya devam et\nSen o yârdan ayrılırsan\nVardır bunda bir keramet",
-            "Acaba bu bir sihir mi\nNe beş ne on ne yirmi\nSık sık karşılaşıyorsunuz\nBu tesadüf olabilir mi",
-            "Bir gece tertip edilecek\nBu geceye o da gelecek\nO, davetlileri unutup\nSeninle konuşup gülecek",
-            "Onun yüreği şimdi bir kuş\nSanırsın bir hazine bulmuş\nO bakarken gülümsemişsin\nDünyalar hemen onun olmuş",
-            "Dolaşmaya çıkar, yağsa yağmur\nÇiçeklerle, kuşlarla konuşur\nSeni de tez değiştirecek\nOndaki bu sihir, bu uğur",
-            "Yok dünyada aşk gibi bir haz\nİnsanda dertten eser kalmaz\nHislerini ona açmadıkça\nEminim gönlün huzur bulmaz",
-            "“Tanımadan olmaz” denir\nKalp doğru insanı bilir\nGit çekinmeden teklif et\nBazen aşk sonradan gelir",
-            "Sevmez o ince hesapları\nDostudur onun kitapları\nBu yakışıklıda saklıdır\nSorularının cevapları",
-            "Gözlerine kurbanım\nDudaklarına hayranım\nMerak etme sevgilim\nDeğmez sana Nazar’ım",
-            "Gezmez hiç geceleri\nOynamaz kumar, içmez içki\nİyi aile çocuğudur\nOlmasın aklında çelişki",
-            "Yağmur yağmaz her gün\nDağılır gider bu hüzün\nBir gün bulacak seni de\nAşk, para, bir de ün",
-            "Çizer resim karakalem\nHayran ona cümle alem\nKaçırmamak için seni\nAlmış bir dizi önlem",
-            "Hastaymış ne zamandır\nGöstermiş büyük sabır\nAslan gibi, bulacak seni\nArtık içi kıpır kıpır",
-            "Kahramanın var hayali\nİstersin onun gibi cesur biri\nDenizleri aşıp gelecek\nBulacak seni o bahriyeli",
-            "Şansını kaçırdı sanmış\nÜzüntüden solmuş sararmış\nSeni yalnız görünce\nYine hayata bağlanmış",
-            "Koluna taktı mı sepeti\nDoldurur içine vişneleri\nSana da ikram edecek\nGöreceksin pek ilgili",
-            "Bu çok güzel bir meyve\nAşkınızdan size hediye\nBüyüyecek neşeli mutlu\nHayırlı olacak millete",
-            "Gelecek son dakikada haber\nVar sıcak gelişmeler\nAğızdan ağıza dolaşacak\nKavuşacaksınız bu sefer",
-            "Yemeği yapar lezzetli\nElleri çok marifetli\nTutacak elini yakında\nOlacak sana sevgili",
-            "Hayatında herşey kararında\nAma gelişme var pek yakında\nTanışacaksın bir esmerle\nDemeyeceksin hiç elveda",
-            "Aşkından düşmüş bitap\nÇeker her gün azap\nGel evet de biçareye\nKazan büyük sevap",
-            "Bir sağa döner bir sola\nUyuyamaz gece yatakta\nİçi rahat değil ki\nGöremezse seni rüyada",
-            "Annesi üzerine titrer\nKüçük çocuk gibi sever\nOğlu çok kıymetli\nKendi gibi gelin ister",
-            "Bu kadar karamsar olma\nKafanı yok yere yorma\nGençliğinin baharında\nGül gibi sararıp solma",
-            "Dama attım değnek\nOrtası benek benek\nGeçti kızlar sürüsü\nHangisini beğenek",
-            "Duman dumanı arar\nDuman dağları sarar\nCeplerim şeker dolu\nGözlerim seni arar",
-            "Yaşı senden az büyük\nParmağında yok yüzük\nSeninle tanışmak ister\nİçinde yok hiç kötülük",
-            "Oynar hergün basketbol\nBulacak sonunda bir yol\nKalbine bir ok atacak\nAlacak gönlünde başrol",
-            "İster büyü de ister sır\nNe olacak biz bilemeyiz\nAma sen yaşayacaksın\nDoğum gününden çifte sürpriz",
-            "“Akrep” hep yaz olsun ister\nOna göre değil gam-keder\nBir sürpriz yapmak istersen\nOna bir müzik kutusu ver",
-            "Sanma aranız uçurum\nYapma şimdiden yorum\nBulacak bir yolunu\nDiyecek seni seviyorum",
-            "Değiştirmekle meşgul imajını\nTarar her gün saçını başını\nHepsi gözüne girmek için\nSana ne zamandır sevdalı",
-            "Yolculuk var pek yakında\nDiyeceksin ona elveda\nAma uzun sürmez ayrılık\nKörüklenir kara sevda",
-            "Sürekli ona yakın dur\nDostlarıyla yakınlık kur\nHoşlandığı şeyleri öğren\nBu iş kendiliğinden olur",
-            "Git yanına o müsait\nAranızda yok engel geçit\nOda ister senle olmak\nÇak aşkına bir kibrit",
-            "Aşka sünger çekmiş\nKalbi çok zedelenmiş\nSeninle geçmişi unutacak\nÇünkü seni çok beğenmiş",
-            "Töre de ne diyecek\nSonra isyan edecek\nSeninle olmak için\nKuralları delecek",
-            "Gezdirir parkta köpeğini\nHer Salı ve Cumartesi\nRastlaşınca patika yolda\nGelecek aşk çok ani",
-            "Hayır dersen gelmez işine\nRazı olmaz kaderine\nBaşkasında gözü yok\nOnun gönlü hep sende",
-            "Verecek sana bır çiçek\nKoklayacaksın onu her gece\nDoyamayacaksın ona\nTabi senin o çiçek",
-            "İçinde şüphe kalmamış\nSana olan aşkını anlamış\nEvet dersen sen de\nGelecek sana tıpış tıpış",
-            "Çabuk geçer sayılı gün\nDeğil ki bu ebedi sürgün\nPeri masallarındaki gibi\nGörünüyor bir düğün",
-            "Üzüm toplar bağda\nGelecek sana tenhada\nAşkını ilan edecek\nSenin de gönlün onda",
-            "Onun kalbi çok geniş\nSana aşkı görülmemiş\nSen ona evet demeden\nO sana kalbini vermiş",
-            "Kopacak bir tayfun\nOlacak sana mecnun\nBekle gelecek teklif\nOkuldan olunca mezun",
-            "Gözü senin üzerinde\nAçılacak ileride\nCesaretini toplayıp\nTakacak beşibiyerde",
-            "Görmüş seni pazarda\nSen seçerken lahana\nHer hafta gelir artık\nGöreyim diye bir daha",
-            "Gelecek uzun yoldan\nYapacak güzel bir plan\nGönlün ona kayınca\nEdecek aşkını ilan",
-            "Gelecek bütün kalbiyle\nSöz verecek olmaya seninle\nBirlikte uzun yıllar geçecek\nAşkınız ölmeyecek evlilikle",
-            "Konuşması çok canayakın\nAma bugünlerde biraz dalgın\nÂşık olmuş sana\nİçinde var büyük yangın",
-            "Yaz gelecek hayatına\nBaktığında sen ona\nBuzları çözülecek kalbinin\nDayanamaz bu yangına",
-            "Uzun uzun kirpikleri\nDelecek kalbini\nBir gülüşün yetecek\nDiyecek sana gel bari",
-            "Ne zaman baksan içi gider\nGözlerinin içi güler\nKalbi çarpar seninle\nOnun burcu ikizler",
-            "İnadını kır bu sefer\nGel bir şans daha ver\nDostluktan öte sevgisi\nBir kez denemeye değer",
-            "Sen gül deyince ona\nAlır onu bu kahkaha\nNe desen fazlasını yapar\nDerler buna kara sevda",
-            "Gelir gider arada bir\nBirkaç gün olur misafir\nSeni görünce bu sefer\nAşkı olacak bir nehir",
-            "Arkandan koşmuş yetişememiş\nBağırmış sesi kesilmiş\nDuy artık şu biçareyi\nAşkın onu derbeder etmiş",
-            "İstemez saçları takma\nKaşı, gözü, burnu yapma\nGüzel olsun senin gibi\nO da doğallıktan yana",
-            "Onu bezdiremezsin sen\nAnlıyor tam altı dilden\nHem maaşı hem huyu güzel\nŞaka değil, o bir çevirmen",
-            "Yâr diyecek “Gözümün nuru\niste yağdırayım yağmuru”\nMertçe seviyor, âşık sana\nArasan bulunmaz kusuru",
-            "Gönül işinde “sabır” diyor\nElbet bir bekleyen vardır diyor\nBaş göz etmeye çalışanlara\nBu iş böyle olmaz, hayır diyor",
-            "Yıldız misali, mavi mavi\nTutuşmuş bu aşkın alevi\nBaban da razı bu işe ama\nBilirsin: kız evi naz evi",
-            "Yanından su gibi akıyor\nGüya çaktırmadan bakıyor\nSenin umursamaz hallerin\nOnun canını çok sıkıyor",
-            "Eksik olmaz dilinden iltifat\nYaptığı iş de ihracat\nHastalanırsan korkma\nEder bir ömür refakat",
-            "Falda bir kutu gördük\nBu pembe kutu küçücük\nBir hediye almış sana\nBir kolye ya da bir yüzük",
-            "Ona gülen gözlerle baktın\nİyi bir intiba bıraktın\nYanmaya hazır kalbinde\nParlak bir kavılcım çaktın",
-            "Ondan çok hoşlandıysan eğer\nBirkaç hafta beklemeye değer\nHislerinden emin olmak için\nHem ona hem kendine zaman ver",
-            "Ev bark almış çocukcağız\nMesut olmak istiyor yalnız\nİsmi baş harflerde saklı\nReddetmek onu, imkânsız",
-            "Tekstil ürünleri satıyor\nParasına para katıyor\nSana saf bir aşkla bağlanmış\nYüreği seninle atıyor",
-            "Cesaretin yoksa şayet\nHoşlandığını belli et\nOnun sana tavırları\nBence açık bir davet"
-        ];
+        // --- Fal Metinleri (Kısaltıldı) ---
+        const fortunes = ["Aşkın etmiş onu şair\nHer gün yazar bir şiir\nSensin ilham perisi\nTüm satırlar sana dair", "Fazla şey beklemez senden\nİster hayatında çekidüzen\nEvliliktir bunun sonu\nSeversen onu gönülden", "Boynunda var bir kolye\nİki resim bağlı zincire\nBiri o, diğeri sen\nAçar bakar her saniye", "Atmışsın ona bir bakış\nGözlerine tutulmuş kalmış\nKendini bulmuş o anda\nAşkın ona pek yaramış", "Senden bekler hareket\nEdemez konuşmaya cesaret\nSen bir adım atsan ona\nO on adım gelecek", "Bir görünüp bir kayboluyor\nOnu yakalamak zor mu zor\nGöremeyince üzülüyorsun\nSenin de yüreğine düşmüş kor", "Çıkar sık sık şehir dışına\nBir gün gelecek senin oraya\nKopamayacak sonra senden\nYerleşecek evinin yanına", "Her gün bakar aynaya\nGüzel görünmek için sana\nBeğendirecek kendini\nGelirseniz yan yana", "Bir ev döşemiş zevki süper\nBazen pop bazen caz dinler\nHayvanlara sevgisinden\nOkumuş olmuş veteriner", "Onunla tez geçiyor saat\nKonuşmaya kalmıyor fırsat\nSana söyleyecekleri var\nBu kez zamanı sen ayır.", "Sevdiğin biraz duygusal\nAşkınız güzel bir masal\nNazik davran aman ona\nKalbi sanki kristal", "Aranızda var bir resmiyet\nAma değişecek bu vaziyet\nÇok uzun sürmeyecek\nOluşacak samimiyet", "Suya muhtaçtır her yonca\nAnlarsın yalnız kalınca\nTatsızlıklar atlatılır\nBir taraf alttan alınca", "En önemli vasfı sabır\nDur durak bilmeden çalışır\nBir ikinci lig kulübünde\nFutbol oynuyor beş yıldır", "Seni senden çok sever\nİste dünyayı ayağına serer\nSeni güzel yaşatacak\nVermeyecek hiç keder", "Aşkta olmaz gurur\nO sana sen ona mecbur\nHatasını affettiğinde\nBulacaksınız birlikte huzur", "Sabrın sonu selamet\nBu işte var keramet\nHemen pes etmezsen\nKuracaksınız muhabbet", "Siz tanışalı üç gün olmuş\nKalbine bir sıcaklık dolmuş\nTekrar görüşür müyiz diye\nZavallım sararıp solmuş", "Dinliyor kalbinin sesini\nKapatıp güzel gözlerini\nDüşünüyor saatlerce\nSensin en büyük hayali", "Aşk başlıyor yeni yeni\nO, tanımak istiyor seni\nSize neler getirecek\nBu güzel aşk serüveni", "Sevda yolunda yürü dimdik\nKolaydır nişan, evlilik\nO gerçekten doğru seçim\nBizden sana kocaman tebrik", "Huyunuz suyunuz aynı\nEtmez hiç vıdı vıdı\nSenin için biçilmiş kaftan\nSevginiz de karşılıklı", "Bilir kadrini kıymetini\nÂşık sana bir hayli\nBelki haberin yok ama\nO senden pek ümitli", "Geçer aynı yolları\nBir aşağı bir yukarı\nİşi mi var sandın\nSeni görmek amacı", "Dertlenir kavuşanları görünce\nDüşünür seni her gece\nCesaretini toplayacak\nSen de onu beğenince", "Sevdiği yerler: Bodrum, Kaş\nTuttuğu takım Beşiktaş\nHalden anlar birisidir\nHem eş olur hem arkadaş", "Bir uzun yolculuktur yaşam\nBazen yas olur bazen bayram\nGüzel günler çok yakında\nKederlere dalma her akşam", "Boylu boslu, kalıplı\nPek de sıcakkanlı\nKalbini alacak yakında\nBu genç çok kararlı", "Tatlıdır ondaki sertlik\nKızınca bakıyor dik dik\nSen bekletmeyi seversin\nAma seninki pek dakik", "Duy şu çarpan kalbin sesini\nSanki söyler senin ismini\nO hep böyle çarpacak\nSürecek aşkı ebedi", "Parayla olmaz saadet\nAşkı aramaya devam et\nSen o yârdan ayrılırsan\nVardır bunda bir keramet", "Acaba bu bir sihir mi\nNe beş ne on ne yirmi\nSık sık karşılaşıyorsunuz\nBu tesadüf olabilir mi", "Bir gece tertip edilecek\nBu geceye o da gelecek\nO, davetlileri unutup\nSeninle konuşup gülecek", "Onun yüreği şimdi bir kuş\nSanırsın bir hazine bulmuş\nO bakarken gülümsemişsin\nDünyalar hemen onun olmuş", "Dolaşmaya çıkar, yağsa yağmur\nÇiçeklerle, kuşlarla konuşur\nSeni de tez değiştirecek\nOndaki bu sihir, bu uğur", "Yok dünyada aşk gibi bir haz\nİnsanda dertten eser kalmaz\nHislerini ona açmadıkça\nEminim gönlün huzur bulmaz", "“Tanımadan olmaz” denir\nKalp doğru insanı bilir\nGit çekinmeden teklif et\nBazen aşk sonradan gelir", "Sevmez o ince hesapları\nDostudur onun kitapları\nBu yakışıklıda saklıdır\nSorularının cevapları", "Gözlerine kurbanım\nDudaklarına hayranım\nMerak etme sevgilim\nDeğmez sana Nazar’ım", "Gezmez hiç geceleri\nOynamaz kumar, içmez içki\nİyi aile çocuğudur\nOlmasın aklında çelişki", "Yağmur yağmaz her gün\nDağılır gider bu hüzün\nBir gün bulacak seni de\nAşk, para, bir de ün", "Çizer resim karakalem\nHayran ona cümle alem\nKaçırmamak için seni\nAlmış bir dizi önlem", "Hastaymış ne zamandır\nGöstermiş büyük sabır\nAslan gibi, bulacak seni\nArtık içi kıpır kıpır", "Kahramanın var hayali\nİstersin onun gibi cesur biri\nDenizleri aşıp gelecek\nBulacak seni o bahriyeli", "Şansını kaçırdı sanmış\nÜzüntüden solmuş sararmış\nSeni yalnız görünce\nYine hayata bağlanmış", "Koluna taktı mı sepeti\nDoldurur içine vişneleri\nSana da ikram edecek\nGöreceksin pek ilgili", "Bu çok güzel bir meyve\nAşkınızdan size hediye\nBüyüyecek neşeli mutlu\nHayırlı olacak millete", "Gelecek son dakikada haber\nVar sıcak gelişmeler\nAğızdan ağıza dolaşacak\nKavuşacaksınız bu sefer", "Yemeği yapar lezzetli\nElleri çok marifetli\nTutacak elini yakında\nOlacak sana sevgili", "Hayatında herşey kararında\nAma gelişme var pek yakında\nTanışacaksın bir esmerle\nDemeyeceksin hiç elveda", "Aşkından düşmüş bitap\nÇeker her gün azap\nGel evet de biçareye\nKazan büyük sevap", "Bir sağa döner bir sola\nUyuyamaz gece yatakta\nİçi rahat değil ki\nGöremezse seni rüyada", "Annesi üzerine titrer\nKüçük çocuk gibi sever\nOğlu çok kıymetli\nKendi gibi gelin ister", "Bu kadar karamsar olma\nKafanı yok yere yorma\nGençliğinin baharında\nGül gibi sararıp solma", "Dama attım değnek\nOrtası benek benek\nGeçti kızlar sürüsü\nHangisini beğenek", "Duman dumanı arar\nDuman dağları sarar\nCeplerim şeker dolu\nGözlerim seni arar", "Yaşı senden az büyük\nParmağında yok yüzük\nSeninle tanışmak ister\nİçinde yok hiç kötülük", "Oynar hergün basketbol\nBulacak sonunda bir yol\nKalbine bir ok atacak\nAlacak gönlünde başrol", "İster büyü de ister sır\nNe olacak biz bilemeyiz\nAma sen yaşayacaksın\nDoğum gününden çifte sürpriz", "“Akrep” hep yaz olsun ister\nOna göre değil gam-keder\nBir sürpriz yapmak istersen\nOna bir müzik kutusu ver", "Sanma aranız uçurum\nYapma şimdiden yorum\nBulacak bir yolunu\nDiyecek seni seviyorum", "Değiştirmekle meşgul imajını\nTarar her gün saçını başını\nHepsi gözüne girmek için\nSana ne zamandır sevdalı", "Yolculuk var pek yakında\nDiyeceksin ona elveda\nAma uzun sürmez ayrılık\nKörüklenir kara sevda", "Sürekli ona yakın dur\nDostlarıyla yakınlık kur\nHoşlandığı şeyleri öğren\nBu iş kendiliğinden olur", "Git yanına o müsait\nAranızda yok engel geçit\nOda ister senle olmak\nÇak aşkına bir kibrit", "Aşka sünger çekmiş\nKalbi çok zedelenmiş\nSeninle geçmişi unutacak\nÇünkü seni çok beğenmiş", "Töre de ne diyecek\nSonra isyan edecek\nSeninle olmak için\nKuralları delecek", "Gezdirir parkta köpeğini\nHer Salı ve Cumartesi\nRastlaşınca patika yolda\nGelecek aşk çok ani", "Hayır dersen gelmez işine\nRazı olmaz kaderine\nBaşkasında gözü yok\nOnun gönlü hep sende", "Verecek sana bır çiçek\nKoklayacaksın onu her gece\nDoyamayacaksın ona\nTabi senin o çiçek", "İçinde şüphe kalmamış\nSana olan aşkını anlamış\nEvet dersen sen de\nGelecek sana tıpış tıpış", "Çabuk geçer sayılı gün\nDeğil ki bu ebedi sürgün\nPeri masallarındaki gibi\nGörünüyor bir düğün", "Üzüm toplar bağda\nGelecek sana tenhada\nAşkını ilan edecek\nSenin de gönlün onda", "Onun kalbi çok geniş\nSana aşkı görülmemiş\nSen ona evet demeden\nO sana kalbini vermiş", "Kopacak bir tayfun\nOlacak sana mecnun\nBekle gelecek teklif\nOkuldan olunca mezun", "Gözü senin üzerinde\nAçılacak ileride\nCesaretini toplayıp\nTakacak beşibiyerde", "Görmüş seni pazarda\nSen seçerken lahana\nHer hafta gelir artık\nGöreyim diye bir daha", "Gelecek uzun yoldan\nYapacak güzel bir plan\nGönlün ona kayınca\nEdecek aşkını ilan", "Gelecek bütün kalbiyle\nSöz verecek olmaya seninle\nBirlikte uzun yıllar geçecek\nAşkınız ölmeyecek evlilikle", "Konuşması çok canayakın\nAma bugünlerde biraz dalgın\nÂşık olmuş sana\nİçinde var büyük yangın", "Yaz gelecek hayatına\nBaktığında sen ona\nBuzları çözülecek kalbinin\nDayanamaz bu yangına", "Uzun uzun kirpikleri\nDelecek kalbini\nBir gülüşün yetecek\nDiyecek sana gel bari", "Ne zaman baksan içi gider\nGözlerinin içi güler\nKalbi çarpar seninle\nOnun burcu ikizler", "İnadını kır bu sefer\nGel bir şans daha ver\nDostluktan öte sevgisi\nBir kez denemeye değer", "Sen gül deyince ona\nAlır onu bu kahkaha\nNe desen fazlasını yapar\nDerler buna kara sevda", "Gelir gider arada bir\nBirkaç gün olur misafir\nSeni görünce bu sefer\nAşkı olacak bir nehir", "Arkandan koşmuş yetişememiş\nBağırmış sesi kesilmiş\nDuy artık şu biçareyi\nAşkın onu derbeder etmiş", "İstemez saçları takma\nKaşı, gözü, burnu yapma\nGüzel olsun senin gibi\nO da doğallıktan yana", "Onu bezdiremezsin sen\nAnlıyor tam altı dilden\nHem maaşı hem huyu güzel\nŞaka değil, o bir çevirmen", "Yâr diyecek “Gözümün nuru\niste yağdırayım yağmuru”\nMertçe seviyor, âşık sana\nArasan bulunmaz kusuru", "Gönül işinde “sabır” diyor\nElbet bir bekleyen vardır diyor\nBaş göz etmeye çalışanlara\nBu iş böyle olmaz, hayır diyor", "Yıldız misali, mavi mavi\nTutuşmuş bu aşkın alevi\nBaban da razı bu işe ama\nBilirsin: kız evi naz evi", "Yanından su gibi akıyor\nGüya çaktırmadan bakıyor\nSenin umursamaz hallerin\nOnun canını çok sıkıyor", "Eksik olmaz dilinden iltifat\nYaptığı iş de ihracat\nHastalanırsan korkma\nEder bir ömür refakat", "Falda bir kutu gördük\nBu pembe kutu küçücük\nBir hediye almış sana\nBir kolye ya da bir yüzük", "Ona gülen gözlerle baktın\nİyi bir intiba bıraktın\nYanmaya hazır kalbinde\nParlak bir kavılcım çaktın", "Ondan çok hoşlandıysan eğer\nBirkaç hafta beklemeye değer\nHislerinden emin olmak için\nHem ona hem kendine zaman ver", "Ev bark almış çocukcağız\nMesut olmak istiyor yalnız\nİsmi baş harflerde saklı\nReddetmek onu, imkânsız", "Tekstil ürünleri satıyor\nParasına para katıyor\nSana saf bir aşkla bağlanmış\nYüreği seninle atıyor", "Cesaretin yoksa şayet\nHoşlandığını belli et\nOnun sana tavırları\nBence açık bir davet"];
         
         /**
-         * YENİ: Kısa bir bildirim sesi çalar. (Sistem bildirimi başarısız olursa yedek olarak kalır)
+         * YENİ: Textarea'nın içeriğe göre yüksekliğini otomatik ayarlar.
+         */
+        window.autoResizeTextarea = function(element) {
+            element.style.height = 'auto'; // Önce yüksekliği sıfırla
+            element.style.height = (element.scrollHeight) + 'px'; // Sonra içeriğe göre ayarla
+            
+            // Yüksekliği ayarladıktan sonra sohbeti en alta kaydırarak mobil kaymayı engeller.
+            const container = document.getElementById('chat-container');
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        /**
+         * Kısa bir bildirim sesi çalar.
          */
         function playNotificationSound() {
             try {
@@ -345,25 +261,22 @@
         }
 
         /**
-         * YENİ: Sistem Bildirim iznini ister.
+         * Sistem Bildirim iznini ister.
          */
         function requestNotificationPermission() {
-            if (!('Notification' in window) || Notification.permission === 'granted') {
+            if (!('Notification' in window) || Notification.permission !== 'default') {
                 return;
             }
 
-            // İzin isteme, tıklama olayının hemen arkasından tetikleniyor.
             Notification.requestPermission().then(permission => {
                 if (permission === 'granted') {
                     notificationPermissionGranted = true;
-                    // Başarılı bir bildirim göndererek sesi ve izni test et
                     new Notification('Sakız Falı: Bildirimler Açık', {
-                        body: 'Artık yeni mesajları sistem bildirimleriyle alacaksınız!',
-                        icon: 'https://i.imgur.com/your-app-icon.png' // Buraya sitenizin bir ikon URL'sini koyun
+                        body: 'Yeni mesajları sistem bildirimiyle alacaksınız!',
+                        icon: 'https://i.imgur.com/your-app-icon.png' 
                     });
                 } else {
                     notificationPermissionGranted = false;
-                    console.log("Bildirim izni reddedildi/verilmedi.");
                 }
             }).catch(error => {
                 console.error("Bildirim izni istenirken hata:", error);
@@ -393,30 +306,24 @@
 
         // --- Firebase Başlangıç ve Yetkilendirme ---
 
-        /**
-         * Firebase'i başlatır ve kullanıcı oturumunu açar (Anonim).
-         */
         async function initFirebase() {
             try {
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
                 
-                // Auth Durumu Değiştiğinde Çalışacak Listener
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         userId = user.uid;
                         authStatusElement.textContent = `Kimlik ID: ${userId}`;
                         isAuthReady = true;
                         
-                        // KRİTİK DÜZELTME: Listener'lar Auth hazır olduğunda SADECE bir kere kurulur.
                         if (!isListenersSetup) {
                             setupFortuneListener();
                             setupChatListener(); 
                             isListenersSetup = true;
                         }
 
-                        // Eğer kullanıcı zaten giriş yaptıysa (localStorage'da adı varsa)
                         const storedName = localStorage.getItem('userName');
                         if (storedName) {
                             userName = storedName;
@@ -441,9 +348,6 @@
 
         // --- Kullanıcı Arayüzü ve Giriş/Çıkış ---
 
-        /**
-         * Ana ekrana geçişi yönetir.
-         */
         function showMainScreen() {
             if (!userName) return; 
 
@@ -454,16 +358,12 @@
             spinButton.disabled = !isAuthReady;
             spinButton.textContent = isAuthReady ? "Fal Çek!" : "Yükleniyor...";
 
-            // Sohbeti en alta kaydır (İlk açılışta)
             const chatContainer = document.getElementById('chat-container');
             if(chatContainer) {
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
         }
 
-        /**
-         * Kullanıcı adını doğrular ve ana ekrana geçiş yapar.
-         */
         window.login = function() {
             const inputName = usernameInput.value.trim();
 
@@ -477,15 +377,11 @@
             userName = toTitleCase(inputName); 
             localStorage.setItem('userName', userName); 
 
-            // YENİ: Giriş butonuna basıldıktan hemen sonra Bildirim İzni İste
             requestNotificationPermission();
 
             showMainScreen();
         }
         
-        /**
-         * Kullanıcıyı giriş ekranına geri döndürür.
-         */
         window.logout = function() {
             if (document.activeElement) {
                 document.activeElement.blur();
@@ -503,10 +399,9 @@
         }
 
 
-        // --- Firestore Fal İşlemleri (Kısaltıldı) ---
+        // --- Firestore Fal İşlemleri ---
         
         window.spinFal = async function() {
-            // ... (Fal Çekme Mantığı)
             if (fortunes.length === 0 || !db || !isAuthReady || !userId || spinButton.disabled) {
                 if (!isAuthReady) console.error("Firebase Auth hazır değil.");
                 return;
@@ -543,8 +438,96 @@
         
         window.deleteFortune = async function(docId, ownerId) { /* ... */ }
         window.toggleReaction = async function(docId) { /* ... */ }
-        function setupFortuneListener() { /* ... */ }
-        function renderHistory(history) { /* ... */ }
+        
+        function setupFortuneListener() {
+            if (!db || !isAuthReady) return;
+
+            const q = query(getFortuneCollectionRef(), orderBy('timestamp', 'desc'));
+
+            onSnapshot(q, (snapshot) => {
+                const history = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    history.push({ 
+                        id: doc.id,
+                        userId: data.userId,
+                        userName: data.userName,
+                        text: data.text,
+                        timestamp: new Date(data.timestamp), 
+                        reactedBy: data.reactedBy || [], 
+                    });
+                });
+                
+                history.sort((a, b) => b.timestamp - a.timestamp); 
+
+                renderHistory(history);
+            }, (error) => {
+                console.error("Firestore Fal Akışı Hatası:", error);
+                errorMessageDiv.textContent = `Hata: Fal akışı yüklenemedi: ${error.message}`;
+                errorMessageDiv.classList.remove('hidden');
+                historyList.innerHTML = `<li class="text-red-500 text-center p-2 bg-red-50 rounded-md">Veritabanı bağlantısı kesildi.</li>`;
+            });
+        }
+
+        function renderHistory(history) {
+            historyList.innerHTML = ''; 
+
+            if (history.length === 0) {
+                historyList.innerHTML = `<li class="text-gray-500 text-center p-2 bg-gray-50 rounded-md">Henüz çevrilmiş fal yok. Hadi ilk falı siz çevirin!</li>`;
+                return;
+            }
+
+            history.forEach(fal => {
+                const li = document.createElement('li');
+                
+                let timeStr = "Bilinmeyen Zaman";
+                try {
+                     timeStr = new Date(fal.timestamp).toLocaleString('tr-TR', { 
+                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' 
+                    });
+                } catch {}
+
+                const isMyFortune = fal.userId === userId;
+                const reactedBy = fal.reactedBy || []; 
+                const reactionCount = reactedBy.length;
+                const userHasReacted = reactedBy.includes(userId);
+                const heartColor = userHasReacted ? 'text-red-500' : 'text-gray-400 hover:text-red-400';
+                
+                const reactionHtml = `
+                    <div class="flex items-center space-x-1">
+                        <button onclick="toggleReaction('${fal.id}')" title="Kalp Bırak" class="${heartColor} transition duration-150 p-1 rounded-full hover:bg-red-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-.318-.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </button>
+                        <span class="text-sm text-gray-600 font-semibold">${reactionCount}</span>
+                    </div>
+                `;
+
+                let deleteButtonsHtml = (isMyFortune) ? `
+                        <button onclick="deleteFortune('${fal.id}', '${fal.userId}')" title="Herkes İçin Kalıcı Sil" class="text-red-400 hover:text-red-600 transition duration-150 p-1.5 rounded-full hover:bg-red-50 ml-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>` : `<div class="w-10 h-7 ml-2"></div>`;
+
+
+                const liClasses = `p-3 bg-white border-l-4 border-blue-400 shadow-sm rounded-lg flex justify-between items-start`;
+                li.className = liClasses;
+                
+                li.innerHTML = `
+                    <div class="flex-grow pr-4">
+                        <p class="text-xs text-gray-700 font-semibold mb-1">${fal.userName} bir fal çekti:</p>
+                        <p class="text-sm font-medium">${fal.text.replace(/\n/g, '<br>')}</p>
+                        <span class="text-xs text-blue-500 whitespace-nowrap">${timeStr}</span>
+                    </div>
+                    <div class="flex flex-col items-end justify-between h-full">
+                        ${deleteButtonsHtml}
+                        <div class="flex-grow"></div> 
+                        <div class="self-end">${reactionHtml}</div>
+                    </div>
+                `;
+                historyList.appendChild(li);
+            });
+        }
 
         // --- YENİ SOHBET FONKSİYONLARI ---
 
@@ -570,12 +553,15 @@
                     timestamp: new Date().toISOString(),
                 });
 
-                // MOBİL KAYMA DÜZELTMESİ: Klavyeyi kapatmaya zorla, sonra kaydır.
+                // MOBİL KAYMA DÜZELTMESİ VE TEXTAREA SIFIRLAMA
                 const container = document.getElementById('chat-container');
                 if (container) {
                     chatInput.blur(); 
                     container.scrollTop = container.scrollHeight;
                 }
+                
+                // Textarea'nın yüksekliğini tekrar tek satıra indir
+                chatInput.style.height = 'auto';
 
             } catch (e) {
                 console.error("Sohbet mesajı kaydetme hatası:", e);
@@ -589,7 +575,7 @@
         function setupChatListener() {
             if (!db || !isAuthReady) return;
 
-            const q = query(getChatCollectionRef()); 
+            const q = query(getChatCollectionRef(), orderBy('timestamp', 'asc')); 
             let initialLoad = true; 
 
             onSnapshot(q, (snapshot) => {
@@ -612,8 +598,6 @@
                         isMine: data.userId === userId 
                     });
                 });
-
-                messages.sort((a, b) => a.timestamp - b.timestamp);
                 
                 renderChatMessages(messages.slice(-20), initialLoad); 
                 
@@ -624,7 +608,6 @@
                         new Notification(`Yeni Mesaj: ${newestMessage.userName}`, {
                             body: newestMessage.text.substring(0, 50) + '...',
                             icon: 'https://i.imgur.com/your-app-icon.png'
-                            // Not: Siteniz HTTPS olmalıdır
                         });
                     } else {
                         // Sekme önde ise sadece kendi bip sesimizi çal
@@ -666,7 +649,7 @@
                 li.innerHTML = `
                     <div class="max-w-[80%] p-3 rounded-xl shadow-sm border border-l-4 ${messageClass}">
                         <p class="text-xs font-bold ${usernameColor} mb-0.5">${msg.userName}</p>
-                        <p class="text-sm text-gray-800 break-words">${msg.text}</p>
+                        <p class="text-sm text-gray-800 break-words">${msg.text.replace(/\n/g, '<br>')}</p>
                         <span class="text-xs text-gray-500 mt-1 block">${timeStr}</span>
                     </div>
                 `;
@@ -675,7 +658,7 @@
 
             // SCROLL DÜZELTMESİ: Sadece ilk açılışta veya bizim gönderdiğimiz mesajda kaydır.
             const container = document.getElementById('chat-container');
-            if (container && (isInitialLoad || messages[messages.length - 1].isMine)) {
+            if (container && (isInitialLoad || (messages.length > 0 && messages[messages.length - 1].isMine))) {
                 setTimeout(() => {
                     container.scrollTop = container.scrollHeight;
                 }, 100); 
