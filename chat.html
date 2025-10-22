@@ -7,15 +7,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Sohbet Sayfası İçin Özel CSS */
+        /* Siyah Tema (Dark Mode) CSS DÜZELTMESİ */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0fdf4; 
+            background-color: #111827; /* Koyu Gri Arka Plan */
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             padding: 0;
             margin: 0;
+            color: #f3f4f6; /* Beyaz Metin Rengi */
         }
 
         #chat-page {
@@ -25,8 +26,8 @@
             width: 100%;
             max-width: 800px; 
             margin: 0 auto;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background-color: #1f2937; /* Daha Koyu Chat Konteyneri */
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
 
         #chat-container {
@@ -36,22 +37,46 @@
             display: flex; 
             flex-direction: column;
             justify-content: flex-start;
+            /* Scroll bar stilini dark mode'a uygun hale getirme (Bazı tarayıcılar destekler) */
+            scrollbar-color: #4b5563 #374151;
         }
         
-        /* Textarea Stilleri (Otomatik Büyüme için min-height) */
+        /* Textarea Stilleri */
         textarea {
              min-height: 48px; 
+             background-color: #374151; /* Input alanı koyu */
+             color: #f3f4f6; /* Input yazı rengi beyaz */
+             border-color: #4b5563 !important;
+        }
+
+        /* Başlık stili */
+        header {
+            background-color: #10b981; /* Başlık Teal renginde kalsın */
         }
         
-        /* YENİ: Alt Buton Konteyneri için Stil */
+        /* Alt Buton Konteyneri için Stil */
         #bottom-controls {
             padding: 1rem;
-            background-color: #fff;
-            border-top: 1px solid #e5e7eb;
+            background-color: #1f2937; /* Alt alan koyu */
+            border-top: 1px solid #374151;
             display: flex;
             flex-direction: column;
-            gap: 10px; /* Boşluk ekle */
+            gap: 10px; 
             flex-shrink: 0;
+        }
+        
+        /* Mesaj Balonu Renkleri (Gelen mesaj beyaz, giden mesaj yeşil/teal) */
+        .bg-white { background-color: #374151 !important; color: #f3f4f6 !important; }
+        .bg-teal-100 { background-color: #10b981 !important; color: #1f2937 !important; } /* Kendi mesajımız */
+        .text-gray-800 { color: #f3f4f6 !important; } /* Mesaj metni rengi */
+
+        /* Geri Dön Butonu */
+        #bottom-controls button {
+            background-color: #4b5563; /* Geri dön butonu gri */
+            color: #f3f4f6;
+        }
+        #bottom-controls button:hover {
+            background-color: #6b7280;
         }
 
     </style>
@@ -122,6 +147,9 @@
         
         // --- FONKSİYONLAR ---
 
+        /**
+         * 1. Mesaj gönderildikten sonra odağı geri getirir ve 4. sorun için kaydırmayı tetikler.
+         */
         window.autoResizeTextarea = function(element) {
             element.style.height = 'auto';
             element.style.height = (element.scrollHeight) + 'px';
@@ -132,6 +160,19 @@
             }
         }
         
+        /**
+         * 3. Sorun Çözümü: Kullanıcı adına göre sabit bir renk kodu üretir.
+         */
+        function stringToHslColor(str, s, l) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const h = hash % 360;
+            // Dark Mode'a uygun, parlak ama okunabilir renkler için L (parlaklık) değeri düşürüldü
+            return 'hsl(' + h + ', ' + s + '%, 55%)'; 
+        }
+
         function playNotificationSound() {
             try {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -178,7 +219,8 @@
 
                 const container = document.getElementById('chat-container');
                 if (container) {
-                    chatInput.blur(); 
+                    // Odak kaybını engellemek için blur yerine tekrar focus yap
+                    chatInput.focus(); 
                     container.scrollTop = container.scrollHeight;
                 }
                 
@@ -190,11 +232,15 @@
             }
         }
 
+        /**
+         * 4. Sorun Çözümü: Otomatik kaydırmayı daha agresif hale getirir.
+         */
         function setupChatListener() {
             if (!getFirestore(app) || !userId) return;
 
             const q = query(getChatCollectionRef(), orderBy('timestamp', 'asc')); 
             let initialLoad = true; 
+            let lastScrollHeight = 0; // Son scroll yüksekliğini takip et
 
             onSnapshot(q, (snapshot) => {
                 
@@ -221,6 +267,21 @@
                 
                 renderChatMessages(messages, initialLoad); 
                 
+                // --- KRİTİK KAYDIRMA DÜZELTMESİ ---
+                const container = document.getElementById('chat-container');
+                if (container) {
+                    // Kaydırma, sadece listenin en altındaysak veya yeni mesaj geldiyse yapılsın
+                    const isAtBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 50; 
+                    
+                    if (isInitialLoad || isAtBottom || hasNewMessagesFromOthers || (messages.length > 0 && messages[messages.length - 1].isMine)) {
+                        setTimeout(() => {
+                            container.scrollTop = container.scrollHeight;
+                        }, 100); 
+                    }
+                }
+                // --- /KRİTİK KAYDIRMA DÜZELTMESİ ---
+
+
                 if (hasNewMessagesFromOthers && newestMessage) {
                     if (notificationPermissionGranted && document.hidden) {
                         new Notification(`Yeni Mesaj: ${newestMessage.userName}`, {
@@ -241,6 +302,9 @@
             });
         }
 
+        /**
+         * 3. Sorun Çözümü: Mesajları render ederken nick adına renk atar.
+         */
         function renderChatMessages(messages, isInitialLoad) {
             chatMessagesList.innerHTML = '';
             
@@ -252,34 +316,28 @@
             messages.forEach(msg => {
                 const li = document.createElement('li');
                 const timeStr = new Date(msg.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                const nickColor = stringToHslColor(msg.userName, 70, 50); // Renk Üret
 
                 const messageClass = msg.isMine 
                     ? 'bg-teal-100 self-end text-right border-teal-400' 
                     : 'bg-white self-start text-left border-blue-400';
                 
-                const usernameColor = msg.isMine ? 'text-teal-600' : 'text-blue-600';
+                // Dark Mode için mesaj metni rengini beyaz yaptık (#f3f4f6)
+                // Kendi mesajımızsa (bg-teal-100) mesaj metni rengini koyu yaptık.
 
                 li.className = `flex ${msg.isMine ? 'justify-end' : 'justify-start'} w-full`; 
                 li.innerHTML = `
                     <div class="max-w-[80%] p-3 rounded-xl shadow-sm border border-l-4 ${messageClass}">
-                        <p class="text-xs font-bold ${usernameColor} mb-0.5">${msg.userName}</p>
-                        <p class="text-sm text-gray-800 whitespace-pre-wrap">${msg.text.replace(/\n/g, '<br>')}</p>
-                        <span class="text-xs text-gray-500 mt-1 block">${timeStr}</span>
+                        <p class="text-xs font-bold mb-0.5" style="color: ${nickColor};">${msg.userName}</p>
+                        <p class="text-sm ${msg.isMine ? 'text-gray-900' : 'text-gray-100'} whitespace-pre-wrap">${msg.text.replace(/\n/g, '<br>')}</p>
+                        <span class="text-xs text-gray-400 mt-1 block">${timeStr}</span>
                     </div>
                 `;
                 chatMessagesList.appendChild(li);
             });
-
-            const container = document.getElementById('chat-container');
-            if (container && (isInitialLoad || (messages.length > 0 && messages[messages.length - 1].isMine))) {
-                setTimeout(() => {
-                    container.scrollTop = container.scrollHeight;
-                }, 100); 
-            }
         }
         
         async function initAuthAndChat() {
-            // Kullanıcı adı yoksa ana sayfaya dön (Kesin Kontrol)
             if (!localStorage.getItem('userName')) {
                 window.location.replace('index.html'); 
                 return;
@@ -308,7 +366,6 @@
 
                         setupChatListener(); 
                     } else {
-                        // Oturum kapanırsa, ana sayfaya gönder
                         alert("Oturum açılamadı. Lütfen tekrar deneyin.");
                         window.location.replace('index.html');
                     }
@@ -317,7 +374,6 @@
                 await signInAnonymously(auth);
 
             } catch (error) {
-                // Kritik hata durumunda ana sayfaya gönder
                 console.error("Uygulama Başlatma Hatası:", error);
                 alert("Sohbet yüklenirken kritik hata oluştu: " + error.message);
                 window.location.replace('index.html'); 
@@ -326,6 +382,7 @@
         
         window.onload = function() {
             initAuthAndChat();
+            // Sayfa yüklenince doğrudan text alana odaklan
             chatInput.focus(); 
         }
 
