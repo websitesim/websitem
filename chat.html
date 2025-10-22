@@ -214,6 +214,9 @@
             }
         }
 
+        /**
+         * 4. Sorun Çözümü: Otomatik kaydırmayı daha agresif hale getirir.
+         */
         function setupChatListener() {
             if (!getFirestore(app) || !userId) return;
 
@@ -245,6 +248,21 @@
                 
                 renderChatMessages(messages, initialLoad); 
                 
+                // KRİTİK KAYDIRMA DÜZELTMESİ (YENİ VE AGRESİF)
+                const container = document.getElementById('chat-container');
+                if (container) {
+                    // Sayfanın en altından 300px yukarıda bile olsa kaydır
+                    const isNearBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 300; 
+                    
+                    if (initialLoad || isNearBottom || hasNewMessagesFromOthers || (messages.length > 0 && messages[messages.length - 1].isMine)) {
+                        setTimeout(() => {
+                            container.scrollTop = container.scrollHeight;
+                        }, 50); 
+                    }
+                }
+                // --- /KRİTİK KAYDIRMA DÜZELTMESİ ---
+
+
                 if (hasNewMessagesFromOthers && newestMessage) {
                     if (notificationPermissionGranted && document.hidden) {
                         new Notification(`Yeni Mesaj: ${newestMessage.userName}`, {
@@ -266,7 +284,7 @@
         }
 
         /**
-         * 3. Sorun Çözümü: Kullanıcı adına göre sabit bir renk kodu üretir.
+         * Nick adına göre sabit bir renk kodu üretir.
          */
         function stringToHslColor(str, s, l) {
             let hash = 0;
@@ -309,18 +327,8 @@
                 chatMessagesList.appendChild(li);
             });
 
-            // KRİTİK KAYDIRMA DÜZELTMESİ: Yeni mesaj geldiğinde veya en alta yakınsak kaydır.
-            const container = document.getElementById('chat-container');
-            if (container) {
-                // Sayfanın en altından 150px yukarıda olsa bile kaydır (mobil cihazlarda daha iyi çalışır)
-                const isNearBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 150; 
-                
-                if (isInitialLoad || isNearBottom || (messages.length > 0 && messages[messages.length - 1].isMine)) {
-                    setTimeout(() => {
-                        container.scrollTop = container.scrollHeight;
-                    }, 100); 
-                }
-            }
+            // İlk yüklemede kaydırma renderChatMessages dışında, initAuthAndChat içinde yapılıyor.
+            // Bu, en baştaki mesajları görme sorununu gidermeyi hedefliyor.
         }
         
         async function initAuthAndChat() {
@@ -333,7 +341,7 @@
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 
-                onAuthStateChanged(auth, (user) => {
+                onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         userId = user.uid;
                         userName = localStorage.getItem('userName');
@@ -351,6 +359,15 @@
 
 
                         setupChatListener(); 
+                        
+                        // İLK YÜKLEME ÇÖZÜMÜ: Listener kurulduktan sonra DOM'u en sona kaydır.
+                        const container = document.getElementById('chat-container');
+                        if (container) {
+                             setTimeout(() => {
+                                container.scrollTop = container.scrollHeight;
+                            }, 500); // 500ms sonra zorla kaydırma
+                        }
+
                     } else {
                         alert("Oturum açılamadı. Lütfen tekrar deneyin.");
                         window.location.replace('index.html');
