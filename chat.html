@@ -106,4 +106,271 @@
                    rows="1" 
                    oninput="autoResizeTextarea(this)"></textarea>
                 <button type="button" onclick="sendMessage()"
-                        class="bg-teal-5
+                        class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-150 flex-shrink-0">
+                    Gönder
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, addDoc, onSnapshot, collection, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        setLogLevel('debug'); 
+
+        let app;
+        let db;
+        let auth;
+        let userId = null;
+        let userName = "";
+        let isAuthReady = false; 
+        let notificationPermissionGranted = (('Notification' in window) && Notification.permission === 'granted'); 
+
+        // --- VERİTABANI BAĞLANTI AYARLARI ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyCQ8ZJdTmdIxGjzcxoc08w7hl0SfAyekH8",
+          authDomain: "skzfli.firebaseapp.com",
+          projectId: "skzfli",
+          storageBucket: "skzfli.firebasestorage.app",
+          messagingSenderId: "748486506131",
+          appId: "1:748486506131:web:1dbcd53a4ba00f74eb7f66",
+          measurementId: "G-LW1TBEV8HY" 
+        };
+        const customAppId = firebaseConfig.projectId; 
+
+        const chatMessagesList = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        
+        // --- FONKSİYONLAR ---
+
+        window.autoResizeTextarea = function(element) {
+            element.style.height = 'auto';
+            element.style.height = (element.scrollHeight) + 'px';
+            
+            const container = document.getElementById('chat-container');
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+        
+        function playNotificationSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime); 
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01); 
+                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.2); 
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.2); 
+            } catch (e) {
+                console.warn("Ses çalma hatası:", e);
+            }
+        }
+
+        function getChatCollectionRef() {
+            return collection(getFirestore(app), `artifacts/${customAppId}/public/data/chat`);
+        }
+
+        window.sendMessage = async function() {
+            const storedName = localStorage.getItem('userName');
+            if (!storedName || !getFirestore(app) || !userId) {
+                alert("Lütfen önce ana sayfadan giriş yapın.");
+                window.location.replace('index.html'); 
+                return;
+            }
+            
+            const messageText = chatInput.value.trim();
+            if (messageText.length === 0) return;
+
+            chatInput.value = ''; 
+            
+            try {
+                await addDoc(getChatCollectionRef(), {
+                    userId: userId,
+                    userName: storedName,
+                    text: messageText,
+                    timestamp: new Date().toISOString(),
+                });
+
+                const container = document.getElementById('chat-container');
+                if (container) {
+                    chatInput.blur(); 
+                    container.scrollTop = container.scrollHeight;
+                }
+                
+                chatInput.style.height = 'auto'; 
+
+            } catch (e) {
+                console.error("Mesaj gönderilemedi:", e);
+                alert("Mesaj gönderilemedi: " + e.message);
+            }
+        }
+
+        function setupChatListener() {
+            if (!getFirestore(app) || !userId) return;
+
+            const q = query(getChatCollectionRef(), orderBy('timestamp', 'asc')); 
+            let initialLoad = true; 
+
+            onSnapshot(q, (snapshot) => {
+                
+                localStorage.setItem('currentChatCount', snapshot.size); 
+                
+                const changes = snapshot.docChanges().filter(change => change.type === "added");
+                
+                const hasNewMessagesFromOthers = changes.some(change => 
+                    change.doc.data().userId !== userId
+                );
+                const newestMessage = changes.length > 0 ? changes[changes.length - 1].doc.data() : null;
+                
+                const messages = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    messages.push({
+                        id: doc.id,
+                        userName: data.userName,
+                        text: data.text,
+                        timestamp: new Date(data.timestamp),
+                        isMine: data.userId === userId
+                    });
+                });
+                
+                renderChatMessages(messages, initialLoad); 
+                
+                if (hasNewMessagesFromOthers && newestMessage) {
+                    if (notificationPermissionGranted && document.hidden) {
+                        new Notification(`Yeni Mesaj: ${newestMessage.userName}`, {
+                            body: newestMessage.text.substring(0, 50) + '...',
+                            icon: 'https://i.imgur.com/your-app-icon.png'
+                        });
+                    } else {
+                        playNotificationSound();
+                    }
+                }
+
+                initialLoad = false;
+
+            }, (error) => {
+                console.error("Sohbet Akışı Hatası:", error);
+                chatMessagesList.innerHTML = `<li class="text-red-500 text-center text-sm">Sohbet yüklenemedi.</li>`;
+                initialLoad = false;
+            });
+        }
+
+        /**
+         * 3. Sorun Çözümü: Kullanıcı adına göre sabit bir renk kodu üretir.
+         */
+        function stringToHslColor(str, s, l) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const h = hash % 360;
+            return 'hsl(' + h + ', ' + s + '%, 55%)'; 
+        }
+
+        /**
+         * Mesajları HTML'e dönüştürür.
+         * SAAT BİLGİSİ BU FONKSİYONDAN KESİN OLARAK KALDIRILDI.
+         */
+        function renderChatMessages(messages, isInitialLoad) {
+            chatMessagesList.innerHTML = '';
+            
+            if (messages.length === 0) {
+                chatMessagesList.innerHTML = `<li class="text-center text-gray-500 text-sm">İlk mesajı siz atın! 👋</li>`;
+                return;
+            }
+
+            messages.forEach(msg => {
+                const li = document.createElement('li');
+                const nickColor = stringToHslColor(msg.userName, 70, 50); 
+
+                const messageClass = msg.isMine 
+                    ? 'bg-teal-100 self-end text-right border-teal-400' 
+                    : 'bg-white self-start text-left border-blue-400';
+                
+                const contentColor = msg.isMine ? 'text-gray-900' : 'text-gray-100'; 
+
+                li.className = `flex ${msg.isMine ? 'justify-end' : 'justify-start'} w-full`; 
+                li.innerHTML = `
+                    <div class="max-w-[80%] p-3 rounded-xl shadow-sm border border-l-4 ${messageClass}">
+                        <p class="text-xs font-bold mb-0.5" style="color: ${nickColor};">${msg.userName}</p>
+                        <p class="text-sm ${contentColor} whitespace-pre-wrap">${msg.text.replace(/\n/g, '<br>')}</p>
+                        </div>
+                `;
+                chatMessagesList.appendChild(li);
+            });
+
+            // KRİTİK KAYDIRMA DÜZELTMESİ: Yeni mesaj geldiğinde veya en alta yakınsak kaydır.
+            const container = document.getElementById('chat-container');
+            if (container) {
+                // Sayfanın en altından 150px yukarıda olsa bile kaydır (mobil cihazlarda daha iyi çalışır)
+                const isNearBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 150; 
+                
+                if (isInitialLoad || isNearBottom || (messages.length > 0 && messages[messages.length - 1].isMine)) {
+                    setTimeout(() => {
+                        container.scrollTop = container.scrollHeight;
+                    }, 100); 
+                }
+            }
+        }
+        
+        async function initAuthAndChat() {
+            if (!localStorage.getItem('userName')) {
+                window.location.replace('index.html'); 
+                return;
+            }
+
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        userName = localStorage.getItem('userName');
+                        isAuthReady = true;
+                        
+                        const dbInstance = getFirestore(app);
+                        const chatRef = collection(dbInstance, `artifacts/${customAppId}/public/data/chat`);
+                        
+                        onSnapshot(query(chatRef, orderBy('timestamp', 'desc')), (snapshot) => {
+                            if (snapshot.size > 0) {
+                                localStorage.setItem('lastSeenChatCount', snapshot.size);
+                                localStorage.setItem('currentChatCount', snapshot.size);
+                            }
+                        });
+
+
+                        setupChatListener(); 
+                    } else {
+                        alert("Oturum açılamadı. Lütfen tekrar deneyin.");
+                        window.location.replace('index.html');
+                    }
+                });
+
+                await signInAnonymously(auth);
+
+            } catch (error) {
+                console.error("Uygulama Başlatma Hatası:", error);
+                alert("Sohbet yüklenirken kritik hata oluştu: " + error.message);
+                window.location.replace('index.html'); 
+            }
+        }
+        
+        window.onload = function() {
+            initAuthAndChat();
+            chatInput.focus(); 
+        }
+
+    </script>
+</body>
+</html>
