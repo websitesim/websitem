@@ -639,72 +639,115 @@
 
     </script>
 </body>
-<div id="birthday-wrapper">
-    <div id="b-container" style="display: block !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9999999; overflow: hidden;">
-        <div style="position: absolute; top: 10%; width: 100%; text-align: center; font-family: sans-serif;">
-            <h1 style="font-size: 24px; color: #ff4757; margin: 0; text-shadow: 2px 2px 4px white;">Mutlu Yıllar! 🎉</h1>
-        </div>
-    </div>
+<div id="birthday-announcement" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px; background: rgba(255, 255, 255, 0.95); border: 2px solid #ff4757; border-radius: 15px; padding: 15px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 10000000; pointer-events: auto;">
+    <h1 style="font-family: 'Segoe UI', sans-serif; font-size: 22px; color: #ff4757; margin: 0; padding: 0;">İyi Ki Doğdun En Özel En Güzel Tek Varlığımm🎉</h1>
+    <p style="font-family: 'Segoe UI', sans-serif; font-size: 14px; color: #2f3542; margin: 5px 0 0 0;">Yeni yılın ve yeni yaşın kutlu olsun!</p>
+    <button onclick="document.getElementById('birthday-announcement').style.display='none'" style="position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; cursor: pointer; color: #a4b0be;">×</button>
 </div>
 
+<div id="balloon-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999999; overflow: hidden;"></div>
+
 <style>
-    .balon-yeni {
+    .b-ball {
         position: absolute;
         bottom: -100px;
         width: 30px;
         height: 40px;
         border-radius: 50%;
-        opacity: 0.8;
-        animation: ucGit linear infinite;
+        animation: floatUp linear infinite;
     }
-    @keyframes ucGit {
-        0% { transform: translateY(0); }
-        100% { transform: translateY(-130vh); }
+    @keyframes floatUp {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(-120vh) rotate(20deg); opacity: 0; }
     }
 </style>
 
 <script>
     (function() {
-        // --- AYARLAR ---
-        var test = true; // Gerçek gün geldiğinde false yap!
-        var ay = 1;
-        var gun = 1;
-        // ---------------
+        const today = new Date();
+        const month = today.getMonth() + 1; // JS'de aylar 0-11 arasıdır
+        const day = today.getDate();
 
-        var bugun = new Date();
-        if (test || (bugun.getMonth() + 1 === ay && bugun.getDate() === gun)) {
-            
-            var renkler = ['#ff6b81', '#70a1ff', '#7bed9f', '#eccc68', '#ffa502'];
-            var alan = document.getElementById('b-container');
+        // TARİH KONTROLÜ: 31 Aralık VEYA (Ocak ayı VE gün <= 26)
+        const isActive = (month === 12 && day === 31) || (month === 1 && day <= 26);
 
-            function balonEkle() {
-                var b = document.createElement('div');
-                b.className = 'balon-yeni';
-                var sol = Math.random() * 95;
-                var sure = 5 + Math.random() * 5;
-                var renk = renkler[Math.floor(Math.random() * renkler.length)];
-
-                b.style.left = sol + '%';
-                b.style.backgroundColor = renk;
-                b.style.animationDuration = sure + 's';
+        if (isActive) {
+            document.addEventListener("DOMContentLoaded", function() {
+                document.getElementById('birthday-announcement').style.display = 'block';
                 
-                alan.appendChild(b);
-                
-                // Sayfayı kasmaması için giden balonu 10 saniye sonra siler
-                setTimeout(function() { b.remove(); }, 10000);
-            }
+                const container = document.getElementById('balloon-container');
+                const colors = ['#ff6b81', '#70a1ff', '#7bed9f', '#eccc68', '#ffa502'];
 
-            // Hemen başla ve her 500ms'de bir yeni balon at
-            for(var j=0; j<15; j++) {
-                setTimeout(balonEkle, j * 300);
-            }
-            setInterval(balonEkle, 800);
-        } else {
-            document.getElementById('birthday-wrapper').innerHTML = '';
+                function createB() {
+                    const b = document.createElement('div');
+                    b.className = 'b-ball';
+                    b.style.left = Math.random() * 95 + '%';
+                    b.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    b.style.animationDuration = (6 + Math.random() * 6) + 's';
+                    container.appendChild(b);
+                    setTimeout(() => b.remove(), 12000);
+                }
+
+                setInterval(createB, 800);
+            });
+        }
+    })();
+</script><div id="birthday-announcement" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px; background: rgba(255, 255, 255, 0.95); border: 2px solid #ff4757; border-radius: 15px; padding: 15px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 10000000; pointer-events: auto;">
+    <h1 style="font-family: 'Segoe UI', sans-serif; font-size: 22px; color: #ff4757; margin: 0; padding: 0;">Mutlu Yıllar! 🎉</h1>
+    <p style="font-family: 'Segoe UI', sans-serif; font-size: 14px; color: #2f3542; margin: 5px 0 0 0;">Yeni yılın ve yeni yaşın kutlu olsun!</p>
+    <button onclick="document.getElementById('birthday-announcement').style.display='none'" style="position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; cursor: pointer; color: #a4b0be;">×</button>
+</div>
+
+<div id="balloon-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999999; overflow: hidden;"></div>
+
+<style>
+    .b-ball {
+        position: absolute;
+        bottom: -100px;
+        width: 30px;
+        height: 40px;
+        border-radius: 50%;
+        animation: floatUp linear infinite;
+    }
+    @keyframes floatUp {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(-120vh) rotate(20deg); opacity: 0; }
+    }
+</style>
+
+<script>
+    (function() {
+        const today = new Date();
+        const month = today.getMonth() + 1; // JS'de aylar 0-11 arasıdır
+        const day = today.getDate();
+
+        // TARİH KONTROLÜ: 31 Aralık VEYA (Ocak ayı VE gün <= 26)
+        const isActive = (month === 12 && day === 31) || (month === 1 && day <= 26);
+
+        if (isActive) {
+            document.addEventListener("DOMContentLoaded", function() {
+                document.getElementById('birthday-announcement').style.display = 'block';
+                
+                const container = document.getElementById('balloon-container');
+                const colors = ['#ff6b81', '#70a1ff', '#7bed9f', '#eccc68', '#ffa502'];
+
+                function createB() {
+                    const b = document.createElement('div');
+                    b.className = 'b-ball';
+                    b.style.left = Math.random() * 95 + '%';
+                    b.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    b.style.animationDuration = (6 + Math.random() * 6) + 's';
+                    container.appendChild(b);
+                    setTimeout(() => b.remove(), 12000);
+                }
+
+                setInterval(createB, 800);
+            });
         }
     })();
 </script>
 </html>
+
 
 
 
