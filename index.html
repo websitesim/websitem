@@ -640,80 +640,139 @@
     </script>
 </body>
 <div id="bday-wrap" style="display: none;">
-    <div id="bday-msg" style="position: fixed !important; top: 15px !important; left: 50% !important; transform: translateX(-50%) !important; width: 280px !important; background: #fff !important; border: 2px solid #ff4757 !important; border-radius: 15px !important; padding: 12px !important; text-align: center !important; box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important; z-index: 2147483647 !important; pointer-events: auto !important; margin: 0 !important;">
-        <h1 style="font-family: sans-serif; font-size: 17px; color: #ff4757; margin: 0;">Mutlu Yıllar! 🎉</h1>
-        <p style="font-family: sans-serif; font-size: 12px; color: #333; margin: 4px 0 8px 0;">Doğum gününe özel bir şarkı dinlemek ister misin?</p>
+    <div id="bday-msg" style="position: fixed !important; top: 15px !important; left: 50% !important; transform: translateX(-50%) !important; width: 280px !important; background: #fff !important; border: 2px solid #ff4757 !important; border-radius: 15px !important; padding: 15px !important; text-align: center !important; box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important; z-index: 2147483647 !important; pointer-events: auto !important;">
+        <h1 style="font-family: sans-serif; font-size: 18px; color: #ff4757; margin: 0; line-height: 1.2;">Mutlu Yıllar! 🎉</h1>
+        <p style="font-family: sans-serif; font-size: 12px; color: #333; margin: 5px 0 12px 0;">İkiye On Kala - Bütün İstanbul Biliyo 🎵</p>
         
-        <button id="play-btn" onclick="toggleMusic()" style="background: #ff4757; color: white; border: none; border-radius: 20px; padding: 6px 12px; cursor: pointer; font-size: 11px; font-weight: bold; width: 100%;">🎵 Müziği Başlat</button>
+        <button id="play-btn" onclick="toggleMusic()" style="background: #ff4757; color: white; border: none; border-radius: 20px; padding: 10px 15px; cursor: pointer; font-size: 12px; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span id="play-icon">▶</span> Müziği Başlat
+        </button>
         
-        <button onclick="document.getElementById('bday-wrap').style.display='none'" style="position: absolute; top: 2px; right: 8px; background: none; border: none; font-size: 20px; cursor: pointer; color: #bbb;">&times;</button>
+        <button onclick="document.getElementById('bday-wrap').style.display='none'" style="position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 22px; cursor: pointer; color: #bbb; line-height: 1;">&times;</button>
     </div>
 
     <div id="ball-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2147483646; overflow: hidden;"></div>
 </div>
 
 <audio id="bday-audio" loop>
-    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-</audio>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" type="audio/mpeg">
+    </audio>
 
 <style>
-    /* Ekranın sağa sola kaymasını engellemek için ana konteynırı kısıtlıyoruz */
-    html, body {
-        max-width: 100%;
-        overflow-x: hidden;
-    }
     .real-balloon {
         position: absolute;
-        bottom: -150px;
-        width: 55px;
-        height: 70px;
-        border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+        bottom: -180px;
+        width: 65px;
+        height: 85px;
+        border-radius: 50% 50% 50% 50% / 45% 45% 55% 55%;
         animation: smoothFlyUp linear forwards;
+        box-shadow: inset -6px -6px 12px rgba(0,0,0,0.15);
     }
+
+    /* Balonun üzerindeki gerçekçi parlama */
+    .real-balloon::before {
+        content: "";
+        position: absolute;
+        top: 12%;
+        left: 18%;
+        width: 20%;
+        height: 25%;
+        background: rgba(255, 255, 255, 0.35);
+        border-radius: 50%;
+    }
+
+    /* Balon boğumu */
+    .real-balloon::after {
+        content: "";
+        position: absolute;
+        bottom: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-bottom: 8px solid currentColor;
+    }
+
+    /* Balon ipi */
+    .balloon-line {
+        position: absolute;
+        width: 1px;
+        height: 120px;
+        background: rgba(0,0,0,0.1);
+        bottom: -120px;
+        left: 50%;
+    }
+
     @keyframes smoothFlyUp {
         0% { transform: translateY(0) rotate(0deg); }
-        100% { transform: translateY(-135vh) rotate(15deg); }
+        100% { transform: translateY(-140vh) rotate(12deg); }
     }
 </style>
 
 <script>
     var audio = document.getElementById("bday-audio");
+    var playBtn = document.getElementById("play-btn");
+    var playIcon = document.getElementById("play-icon");
+
     function toggleMusic() {
-        var btn = document.getElementById("play-btn");
-        if (audio.paused) { audio.play(); btn.innerText = "⏸ Müziği Durdur"; btn.style.background = "#2f3542"; } 
-        else { audio.pause(); btn.innerText = "🎵 Müziği Başlat"; btn.style.background = "#ff4757"; }
+        if (audio.paused) {
+            audio.play();
+            playBtn.style.background = "#2f3542";
+            playBtn.innerHTML = "<span>⏸</span> Müziği Durdur";
+        } else {
+            audio.pause();
+            playBtn.style.background = "#ff4757";
+            playBtn.innerHTML = "<span>▶</span> Müziği Başlat";
+        }
     }
 
     (function() {
         const today = new Date();
         const m = today.getMonth() + 1;
         const d = today.getDate();
-        const testMode = true; // Her şey tamamsa bunu false yaparsın.
+        
+        // TEST MODU: Gördükten sonra bunu false yap!
+        const testMode = true; 
 
-        if (testMode || (m === 12 && d === 31) || (m === 1 && d <= 26)) {
+        // 31 Aralık - 26 Ocak Tarih Kontrolü
+        const activeDate = (m === 12 && d === 31) || (m === 1 && d <= 26);
+
+        if (testMode || activeDate) {
             document.addEventListener("DOMContentLoaded", function() {
                 document.getElementById('bday-wrap').style.display = 'block';
                 const container = document.getElementById('ball-container');
-                const colors = ['#ff6b81', '#70a1ff', '#7bed9f', '#eccc68', '#ffa502'];
+                const colors = ['#ff6b81', '#70a1ff', '#7bed9f', '#eccc68', '#ffa502', '#ff4757', '#5352ed'];
 
                 function createBalloon() {
                     const b = document.createElement('div');
                     b.className = 'real-balloon';
-                    b.style.left = Math.random() * 90 + '%';
-                    const size = 55 + Math.random() * 15;
+                    
+                    const line = document.createElement('div');
+                    line.className = 'balloon-line';
+                    b.appendChild(line);
+
+                    const left = Math.random() * 92; 
+                    const size = 60 + Math.random() * 25; 
+                    const duration = 5 + Math.random() * 6;
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+
+                    b.style.left = left + '%';
                     b.style.width = size + 'px';
-                    b.style.height = (size * 1.2) + 'px';
-                    b.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    b.style.animationDuration = (5 + Math.random() * 4) + 's';
+                    b.style.height = (size * 1.3) + 'px';
+                    b.style.backgroundColor = color;
+                    b.style.color = color; 
+                    b.style.animationDuration = duration + 's';
+                    
                     container.appendChild(b);
-                    setTimeout(() => b.remove(), 10000);
+                    setTimeout(() => b.remove(), duration * 1000);
                 }
-                setInterval(createBalloon, 950);
+                setInterval(createBalloon, 850);
             });
         }
     })();
 </script>
 </html>
+
 
 
 
