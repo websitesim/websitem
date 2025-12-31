@@ -640,9 +640,15 @@
     </script>
 </body>
 <div id="bday-main-wrapper" style="display: none;">
-    <div id="bday-msg-box" style="position: fixed !important; top: 20px !important; left: 0 !important; right: 0 !important; margin: auto !important; width: 290px !important; background: #ffffff !important; border: 3px solid #ff4757 !important; border-radius: 20px !important; padding: 15px !important; text-align: center !important; box-shadow: 0 0 20px rgba(0,0,0,0.4) !important; z-index: 2147483647 !important; pointer-events: auto !important;">
-        <h1 style="font-family: 'Segoe UI', Tahoma, sans-serif !important; font-size: 19px !important; color: #ff4757 !important; margin: 0 0 5px 0 !important; font-weight: bold !important;">Mutlu Yıllar! 🎉</h1>
-        <p style="font-family: sans-serif !important; font-size: 13px !important; color: #444 !important; margin: 0 0 12px 0 !important; line-height: 1.4 !important;">Bütün İstanbul Biliyor... 🎵<br>Yeni yaşın kutlu olsun!</p>
+    <div id="bday-msg-box" style="position: fixed !important; top: 20px !important; left: 0 !important; right: 0 !important; margin: auto !important; width: 310px !important; background: #ffffff !important; border: 3px solid #ff4757 !important; border-radius: 20px !important; padding: 18px !important; text-align: center !important; box-shadow: 0 0 25px rgba(0,0,0,0.4) !important; z-index: 2147483647 !important; pointer-events: auto !important;">
+        
+        <h1 style="font-family: 'Segoe UI', Tahoma, sans-serif !important; font-size: 18px !important; color: #ff4757 !important; margin: 0 0 8px 0 !important; font-weight: bold !important; line-height: 1.3 !important;">
+            İyi Ki Doğdun En Özel En Güzel Tek Varlığııımmm 🎉
+        </h1>
+        
+        <p style="font-family: sans-serif !important; font-size: 13px !important; color: #444 !important; margin: 0 0 15px 0 !important; line-height: 1.5 !important;">
+            Yeni yaşın ve yeni yılın senin kadar harika olsunn biricik hemşirem ❤️
+        </p>
         
         <button id="music-control" onclick="handleMusic()" style="background: #ff4757 !important; color: #fff !important; border: none !important; border-radius: 25px !important; padding: 10px !important; width: 100% !important; cursor: pointer !important; font-weight: bold !important; font-size: 13px !important; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3) !important;">▶ Müziği Başlat</button>
         
@@ -653,11 +659,10 @@
 </div>
 
 <audio id="bday-song" loop prefetch="auto">
-    <source src="https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Tours/Enthusiast/Tours_-_01_-_Enthusiast.mp3" type="audio/mpeg">
-    </audio>
+    <source src="istanbul.mp3" type="audio/mpeg">
+</audio>
 
 <style>
-    /* Mobilde ekranın sağa sola taşmasını (zoom sorununu) engeller */
     html, body { max-width: 100% !important; overflow-x: hidden !important; width: 100% !important; position: relative !important; }
 
     .festive-balloon {
@@ -667,13 +672,13 @@
         height: 90px;
         border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
         animation: flySmooth linear forwards;
-        will-change: transform; /* Performans artırır, takılmayı önler */
+        will-change: transform;
     }
-    .festive-balloon::before { /* Parlama */
+    .festive-balloon::before {
         content: ""; position: absolute; top: 10%; left: 20%; width: 20%; height: 25%;
         background: rgba(255, 255, 255, 0.3); border-radius: 50%;
     }
-    .festive-balloon::after { /* Boğum */
+    .festive-balloon::after {
         content: ""; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
         border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 9px solid currentColor;
     }
@@ -695,13 +700,17 @@
     }
 
     (function() {
-        // Tarih Aralığı: 31 Aralık - 26 Ocak
         const now = new Date();
         const mm = now.getMonth() + 1;
         const dd = now.getDate();
-        const testMode = true; // TEST BİTİNCE FALSE YAPIN
+        
+        // Önemli: Test aşamasında true kalsın, yayına alırken false yaparsın.
+        const testMode = true; 
 
-        if (testMode || (mm === 12 && dd === 31) || (mm === 1 && dd <= 26)) {
+        // 31 Aralık - 26 Ocak Tarih Kontrolü
+        const activeDate = (mm === 12 && dd === 31) || (mm === 1 && dd <= 26);
+
+        if (testMode || activeDate) {
             window.addEventListener('load', function() {
                 document.getElementById('bday-main-wrapper').style.display = 'block';
                 const area = document.getElementById('bday-balloons');
@@ -735,6 +744,7 @@
     })();
 </script>
 </html>
+
 
 
 
