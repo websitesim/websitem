@@ -640,13 +640,13 @@
     </script>
 </body>
 <div id="bday-wrap" style="display: none;">
-    <div id="bday-msg" style="position: fixed !important; top: 20px !important; left: 50% !important; transform: translateX(-50%) !important; width: 85% !important; max-width: 300px !important; background: rgba(255, 255, 255, 0.98) !important; border: 2px solid #ff4757 !important; border-radius: 15px !important; padding: 15px !important; text-align: center !important; box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important; z-index: 2147483647 !important; pointer-events: auto !important;">
-        <h1 style="font-family: sans-serif; font-size: 18px; color: #ff4757; margin: 0;">Mutlu Yıllar! 🎉</h1>
-        <p style="font-family: sans-serif; font-size: 13px; color: #333; margin: 5px 0 10px 0;">Doğum gününe özel bir şarkı dinlemek ister misin?</p>
+    <div id="bday-msg" style="position: fixed !important; top: 15px !important; left: 50% !important; transform: translateX(-50%) !important; width: 280px !important; background: #fff !important; border: 2px solid #ff4757 !important; border-radius: 15px !important; padding: 12px !important; text-align: center !important; box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important; z-index: 2147483647 !important; pointer-events: auto !important; margin: 0 !important;">
+        <h1 style="font-family: sans-serif; font-size: 17px; color: #ff4757; margin: 0;">Mutlu Yıllar! 🎉</h1>
+        <p style="font-family: sans-serif; font-size: 12px; color: #333; margin: 4px 0 8px 0;">Doğum gününe özel bir şarkı dinlemek ister misin?</p>
         
-        <button id="play-btn" onclick="toggleMusic()" style="background: #ff4757; color: white; border: none; border-radius: 20px; padding: 5px 15px; cursor: pointer; font-size: 12px; font-weight: bold;">🎵 Müziği Başlat</button>
+        <button id="play-btn" onclick="toggleMusic()" style="background: #ff4757; color: white; border: none; border-radius: 20px; padding: 6px 12px; cursor: pointer; font-size: 11px; font-weight: bold; width: 100%;">🎵 Müziği Başlat</button>
         
-        <button onclick="document.getElementById('bday-wrap').style.display='none'" style="position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 22px; cursor: pointer; color: #bbb;">&times;</button>
+        <button onclick="document.getElementById('bday-wrap').style.display='none'" style="position: absolute; top: 2px; right: 8px; background: none; border: none; font-size: 20px; cursor: pointer; color: #bbb;">&times;</button>
     </div>
 
     <div id="ball-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2147483646; overflow: hidden;"></div>
@@ -657,22 +657,18 @@
 </audio>
 
 <style>
+    /* Ekranın sağa sola kaymasını engellemek için ana konteynırı kısıtlıyoruz */
+    html, body {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
     .real-balloon {
         position: absolute;
         bottom: -150px;
-        width: 60px;
-        height: 75px;
+        width: 55px;
+        height: 70px;
         border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
         animation: smoothFlyUp linear forwards;
-    }
-    .real-balloon::after {
-        content: "";
-        position: absolute;
-        bottom: -22px;
-        left: 50%;
-        width: 1px;
-        height: 22px;
-        background: rgba(0,0,0,0.2);
     }
     @keyframes smoothFlyUp {
         0% { transform: translateY(0) rotate(0deg); }
@@ -682,25 +678,17 @@
 
 <script>
     var audio = document.getElementById("bday-audio");
-    
     function toggleMusic() {
         var btn = document.getElementById("play-btn");
-        if (audio.paused) {
-            audio.play();
-            btn.innerText = "⏸ Müziği Durdur";
-            btn.style.background = "#2f3542";
-        } else {
-            audio.pause();
-            btn.innerText = "🎵 Müziği Başlat";
-            btn.style.background = "#ff4757";
-        }
+        if (audio.paused) { audio.play(); btn.innerText = "⏸ Müziği Durdur"; btn.style.background = "#2f3542"; } 
+        else { audio.pause(); btn.innerText = "🎵 Müziği Başlat"; btn.style.background = "#ff4757"; }
     }
 
     (function() {
         const today = new Date();
         const m = today.getMonth() + 1;
         const d = today.getDate();
-        const testMode = true; // Yayına alırken false yap!
+        const testMode = true; // Her şey tamamsa bunu false yaparsın.
 
         if (testMode || (m === 12 && d === 31) || (m === 1 && d <= 26)) {
             document.addEventListener("DOMContentLoaded", function() {
@@ -711,23 +699,22 @@
                 function createBalloon() {
                     const b = document.createElement('div');
                     b.className = 'real-balloon';
-                    const left = Math.random() * 90; 
-                    const size = 60 + Math.random() * 20; 
-                    const duration = 5 + Math.random() * 4;
-                    b.style.left = left + '%';
+                    b.style.left = Math.random() * 90 + '%';
+                    const size = 55 + Math.random() * 15;
                     b.style.width = size + 'px';
                     b.style.height = (size * 1.2) + 'px';
                     b.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    b.style.animationDuration = duration + 's';
+                    b.style.animationDuration = (5 + Math.random() * 4) + 's';
                     container.appendChild(b);
-                    setTimeout(() => b.remove(), duration * 1000);
+                    setTimeout(() => b.remove(), 10000);
                 }
-                setInterval(createBalloon, 900);
+                setInterval(createBalloon, 950);
             });
         }
     })();
 </script>
 </html>
+
 
 
 
