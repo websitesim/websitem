@@ -639,79 +639,73 @@
 
     </script>
 </body>
-<div id="birthday-container" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 999999; overflow: hidden;">
-    <div id="b-text" style="position: absolute; top: 15%; width: 100%; text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #ff4757; z-index: 1000000; padding: 0 20px;">
-        <h1 style="font-size: 1.8rem; margin: 0; text-shadow: 1px 1px 5px rgba(255,255,255,0.8);">Mutlu Yıllar! 🎉</h1>
-        <p style="font-size: 1.1rem; color: #57606f; margin-top: 5px;">Yeni yaşın kutlu olsun.</p>
+<div id="birthday-wrapper">
+    <div id="b-container" style="display: block !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9999999; overflow: hidden;">
+        <div style="position: absolute; top: 10%; width: 100%; text-align: center; font-family: sans-serif;">
+            <h1 style="font-size: 24px; color: #ff4757; margin: 0; text-shadow: 2px 2px 4px white;">Mutlu Yıllar! 🎉</h1>
+        </div>
     </div>
 </div>
 
 <style>
-    .balloon {
+    .balon-yeni {
         position: absolute;
         bottom: -100px;
-        width: 35px; /* Balonlar biraz daha küçültüldü */
-        height: 45px;
+        width: 30px;
+        height: 40px;
         border-radius: 50%;
-        opacity: 0.7;
-        animation: flyUp linear infinite;
-        z-index: 999998;
+        opacity: 0.8;
+        animation: ucGit linear infinite;
     }
-    .balloon::after {
-        content: "▼";
-        position: absolute;
-        bottom: -7px;
-        left: 12px;
-        font-size: 8px;
-        color: inherit;
-    }
-    @keyframes flyUp {
-        0% { transform: translateY(0) rotate(0deg); }
-        100% { transform: translateY(-125vh) rotate(25deg); }
+    @keyframes ucGit {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-130vh); }
     }
 </style>
 
 <script>
     (function() {
         // --- AYARLAR ---
-        const testModu = true; // Gerçek gün geldiğinde bunu false yaparsın.
-        const hedefAy = 1;      
-        const hedefGun = 1;     
+        var test = true; // Gerçek gün geldiğinde false yap!
+        var ay = 1;
+        var gun = 1;
         // ---------------
 
-        const today = new Date();
-        const isTargetDate = (today.getMonth() + 1 === hedefAy && today.getDate() === hedefGun);
+        var bugun = new Date();
+        if (test || (bugun.getMonth() + 1 === ay && bugun.getDate() === gun)) {
+            
+            var renkler = ['#ff6b81', '#70a1ff', '#7bed9f', '#eccc68', '#ffa502'];
+            var alan = document.getElementById('b-container');
 
-        if (isTargetDate || testModu) {
-            // DOMContentLoaded kullanarak daha hızlı tetiklenmesini sağlayalım
-            document.addEventListener("DOMContentLoaded", function() {
-                const container = document.getElementById('birthday-container');
-                container.style.display = 'block';
+            function balonEkle() {
+                var b = document.createElement('div');
+                b.className = 'balon-yeni';
+                var sol = Math.random() * 95;
+                var sure = 5 + Math.random() * 5;
+                var renk = renkler[Math.floor(Math.random() * renkler.length)];
+
+                b.style.left = sol + '%';
+                b.style.backgroundColor = renk;
+                b.style.animationDuration = sure + 's';
                 
-                const colors = ['#ff6b81', '#70a1ff', '#7bed9f', '#eccc68', '#ffa502'];
+                alan.appendChild(b);
+                
+                // Sayfayı kasmaması için giden balonu 10 saniye sonra siler
+                setTimeout(function() { b.remove(); }, 10000);
+            }
 
-                for (let i = 0; i < 25; i++) {
-                    setTimeout(() => {
-                        const b = document.createElement('div');
-                        b.className = 'balloon';
-                        
-                        const left = Math.random() * 92; 
-                        const duration = 6 + Math.random() * 6;
-                        const color = colors[Math.floor(Math.random() * colors.length)];
-
-                        b.style.left = left + '%';
-                        b.style.backgroundColor = color;
-                        b.style.color = color;
-                        b.style.animationDuration = duration + 's';
-                        
-                        container.appendChild(b);
-                    }, i * 400);
-                }
-            });
+            // Hemen başla ve her 500ms'de bir yeni balon at
+            for(var j=0; j<15; j++) {
+                setTimeout(balonEkle, j * 300);
+            }
+            setInterval(balonEkle, 800);
+        } else {
+            document.getElementById('birthday-wrapper').innerHTML = '';
         }
     })();
 </script>
 </html>
+
 
 
 
