@@ -1,579 +1,249 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sakız Falı</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* Ana tasarım ve font */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #e0f2f1;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            overflow-x: hidden;
-            position: relative;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakız Falı</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Ana tasarım ve font */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e0f2f1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
 
-        /* Bulut Animasyonları */
-        .cloud {
-            position: absolute;
-            background: #fff;
-            border-radius: 50%;
-            opacity: 0.8;
-            animation: moveClouds linear infinite;
-            filter: blur(5px);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-            z-index: 1;
-        }
+        /* Bulut Animasyonları */
+        .cloud {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: moveClouds linear infinite;
+            filter: blur(5px);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            z-index: 1;
+        }
 
-        .cloud1 { width: 150px; height: 50px; top: 10%; left: -100px; animation-duration: 40s; }
-        .cloud1::before, .cloud1::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
-        .cloud1::before { width: 80px; height: 80px; top: -30px; left: 30px; }
-        .cloud1::after { width: 100px; height: 100px; top: -50px; left: 80px; }
+        .cloud1 { width: 150px; height: 50px; top: 10%; left: -100px; animation-duration: 40s; }
+        .cloud1::before, .cloud1::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
+        .cloud1::before { width: 80px; height: 80px; top: -30px; left: 30px; }
+        .cloud1::after { width: 100px; height: 100px; top: -50px; left: 80px; }
 
-        .cloud2 { width: 100px; height: 35px; top: 35%; right: -80px; animation-duration: 50s; }
-        .cloud2::before { content: ''; position: absolute; background: #fff; border-radius: 50%; width: 60px; height: 60px; top: -20px; left: 10px; }
+        .cloud2 { width: 100px; height: 35px; top: 35%; right: -80px; animation-duration: 50s; }
+        .cloud2::before { content: ''; position: absolute; background: #fff; border-radius: 50%; width: 60px; height: 60px; top: -20px; left: 10px; }
 
-        .cloud3 { width: 200px; height: 70px; bottom: 15%; left: -150px; animation-duration: 65s; }
-        .cloud3::before, .cloud3::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
-        .cloud3::before { width: 120px; height: 120px; top: -40px; left: 20px; }
-        .cloud3::after { width: 90px; height: 90px; top: -50px; right: 10px; }
+        .cloud3 { width: 200px; height: 70px; bottom: 15%; left: -150px; animation-duration: 65s; }
+        .cloud3::before, .cloud3::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
+        .cloud3::before { width: 120px; height: 120px; top: -40px; left: 20px; }
+        .cloud3::after { width: 90px; height: 90px; top: -50px; right: 10px; }
 
-        @keyframes moveClouds {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(calc(100vw + 300px)); }
-        }
+        @keyframes moveClouds {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(100vw + 300px)); }
+        }
 
-        /* Başlık stili */
-        h1 {
-            z-index: 10;
-            color: #3182CE; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
+        /* Başlık stili */
+        h1 {
+            z-index: 10;
+            color: #3182CE; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
 
-        /* Kart stilleri */
-        .card {
-            background: #fff;
-            border-radius: 1rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 4px, 6px, 0.05);
-            padding: 2rem;
-            z-index: 20;
-            width: 100%;
-            max-width: 450px;
-        }
-        
-        #result {
-            padding: 1rem; 
-            border-left-width: 4px; 
-            border-color: #f59e0b; 
-            background-color: #fef3c7; 
-            border-radius: 0.5rem; 
-        }
+        /* Kart stilleri */
+        .card {
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 4px, 6px, 0.05);
+            padding: 2rem;
+            z-index: 20;
+            width: 100%;
+            max-width: 450px;
+        }
+        
+        #result {
+            padding: 1rem; 
+            border-left-width: 4px; 
+            border-color: #f59e0b; 
+            background-color: #fef3c7; 
+            border-radius: 0.5rem; 
+        }
 
-        button {
-            transition: all 0.3s ease;
-            transform: scale(1);
-        }
-        button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        
-        .user-id-text {
-            word-break: break-all;
-        }
-        
-    </style>
+        button {
+            transition: all 0.3s ease;
+            transform: scale(1);
+        }
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .user-id-text {
+            word-break: break-all;
+        }
+        
+    </style>
 </head>
 <body class="text-gray-800">
 
-    <div class="cloud cloud1"></div>
-    <div class="cloud cloud2"></div>
-    <div class="cloud cloud3"></div>
+    <div class="cloud cloud1"></div>
+    <div class="cloud cloud2"></div>
+    <div class="cloud cloud3"></div>
 
-    
-    <h1 class="text-4xl font-bold mb-8 z-10 text-teal-600 text-shadow-lg">
-        Sunanın Falları
-    </h1>
+    
+    <h1 class="text-4xl font-bold mb-8 z-10 text-teal-600 text-shadow-lg">
+        Sunanın Falları
+    </h1>
 
-    <div id="login" class="card flex flex-col space-y-4">
-        <p class="text-lg font-semibold text-center text-gray-700">Falınızı Görmek İçin Giriş Yapın</p>
-        <input type="text" id="username" placeholder="Kullanıcı adınızı girin"
-               class="p-3 border-2 border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150"
-               maxlength="20">
-        <button onclick="login()"
-                class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 rounded-xl shadow-lg">
-            Giriş Yap
-        </button>
-        <p class="text-sm text-red-500 text-center hidden" id="login-error-message">Lütfen geçerli bir kullanıcı adı giriniz.</p>
-    </div>
+    <div id="login" class="card flex flex-col space-y-4">
+        <p class="text-lg font-semibold text-center text-gray-700">Falınızı Görmek İçin Giriş Yapın</p>
+        <input type="text" id="username" placeholder="Kullanıcı adınızı girin"
+               class="p-3 border-2 border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150"
+               maxlength="20">
+        <button onclick="login()"
+                class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 rounded-xl shadow-lg">
+            Giriş Yap
+        </button>
+        <p class="text-sm text-red-500 text-center hidden" id="login-error-message">Lütfen geçerli bir kullanıcı adı giriniz.</p>
+    </div>
 
-    <div id="main" class="card mt-6 relative" style="display:none;">
-        
-        <button onclick="logout()"
-                class="absolute top-2 right-2 text-sm text-teal-600 hover:text-teal-800 font-semibold p-2 rounded-lg transition duration-150 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Geri Dön
-        </button>
+    <div id="main" class="card mt-6 relative" style="display:none;">
+        
+        <button onclick="logout()"
+                class="absolute top-2 right-2 text-sm text-teal-600 hover:text-teal-800 font-semibold p-2 rounded-lg transition duration-150 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Geri Dön
+        </button>
 
-        <p id="greeting" class="text-xl font-semibold mb-4 text-center text-teal-600"></p>
-        <p id="auth-status" class="text-xs text-gray-500 text-center mb-4 user-id-text"></p>
+        <p id="greeting" class="text-xl font-semibold mb-4 text-center text-teal-600"></p>
+        <p id="auth-status" class="text-xs text-gray-500 text-center mb-4 user-id-text"></p>
 
-        <button onclick="spinFal()" id="spin-button"
-                class="w-full bg-pink-500 hover:bg-pink-600 text-white font-extrabold py-4 rounded-xl text-2xl shadow-xl transition transform hover:scale-[1.02]">
-            Fal Çek!
-        </button>
-        
-        <p id="result" class="mt-6 text-lg italic text-center min-h-[4rem] flex items-center justify-center">
-            Falınız Burada Gözükecek...
-        </p>
-        
-        <button onclick="window.location.replace('chat.html');"
-                class="w-full mt-6 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg transition transform hover:scale-[1.01] relative">
-            💬 Genel Sohbet Odasına Git 
-            <span id="chat-badge" class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full" style="display:none;"></span>
-        </button>
-        
-        <h3 class="text-2xl font-bold mt-8 mb-4 border-b pb-2 text-teal-700">Genel Fal Akışı (Herkese Açık)</h3>
-        
-        <div id="history-container" class="overflow-y-auto" style="height: 400px;"> 
-            <ul id="history" class="space-y-2">
-                <li class="text-gray-500 text-sm text-center">Yükleniyor...</li>
-            </ul>
-        </div>
-        <p class="text-xs text-red-500 mt-2 text-center hidden" id="error-message">Hata: Veritabanı bağlantısı kurulamadı. Firebase ayarlarınızı kontrol edin.</p>
-        
-    </div>
+        <button onclick="spinFal()" id="spin-button"
+                class="w-full bg-pink-500 hover:bg-pink-600 text-white font-extrabold py-4 rounded-xl text-2xl shadow-xl transition transform hover:scale-[1.02]">
+            Fal Çek!
+        </button>
+        
+        <p id="result" class="mt-6 text-lg italic text-center min-h-[4rem] flex items-center justify-center">
+            Falınız Burada Gözükecek...
+        </p>
+        
+        <button onclick="window.location.replace('chat.html');"
+                class="w-full mt-6 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg transition transform hover:scale-[1.01] relative">
+            💬 Genel Sohbet Odasına Git 
+            <span id="chat-badge" class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full" style="display:none;"></span>
+        </button>
+        
+        <h3 class="text-2xl font-bold mt-8 mb-4 border-b pb-2 text-teal-700">Genel Fal Akışı (Herkese Açık)</h3>
+        
+        <div id="history-container" class="overflow-y-auto" style="height: 400px;"> 
+            <ul id="history" class="space-y-2">
+                <li class="text-gray-500 text-sm text-center">Yükleniyor...</li>
+            </ul>
+        </div>
+        <p class="text-xs text-red-500 mt-2 text-center hidden" id="error-message">Hata: Veritabanı bağlantısı kurulamadı. Firebase ayarlarınızı kontrol edin.</p>
+        
+    </div>
 
-    <script type="module">
-        // Firebase Modüllerini İçe Aktar
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, addDoc, onSnapshot, collection, query, deleteDoc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        
-        setLogLevel('debug'); 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, addDoc, onSnapshot, collection, query, deleteDoc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        const firebaseConfig = {
+          apiKey: "AIzaSyCQ8ZJdTmdIxGjzcxoc08w7hl0SfAyekH8",
+          authDomain: "skzfli.firebaseapp.com",
+          projectId: "skzfli",
+          storageBucket: "skzfli.firebasestorage.app",
+          messagingSenderId: "748486506131",
+          appId: "1:748486506131:web:1dbcd53a4ba00f74eb7f66",
+          measurementId: "G-LW1TBEV8HY" 
+        };
 
-        let app;
-        let db;
-        let auth;
-        let userId = null;
-        let userName = "";
-        let isAuthReady = false; 
-        let isListenersSetup = false; 
-        let notificationPermissionGranted = (('Notification' in window) && Notification.permission === 'granted'); 
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const customAppId = firebaseConfig.projectId;
 
-        // --- VERİTABANI BAĞLANTI AYARLARI ---
-        const firebaseConfig = {
-          apiKey: "AIzaSyCQ8ZJdTmdIxGjzcxoc08w7hl0SfAyekH8",
-          authDomain: "skzfli.firebaseapp.com",
-          projectId: "skzfli",
-          storageBucket: "skzfli.firebasestorage.app",
-          messagingSenderId: "748486506131",
-          appId: "1:748486506131:web:1dbcd53a4ba00f74eb7f66",
-          measurementId: "G-LW1TBEV8HY" 
-        };
-        const customAppId = firebaseConfig.projectId; 
-        // ------------------------------------
+        let userId = null;
+        let userName = "";
 
-        // UI Elementleri 
-        const loginDiv = document.getElementById('login');
-        const mainDiv = document.getElementById('main');
-        const usernameInput = document.getElementById('username');
-        const greetingElement = document.getElementById('greeting');
-        const resultElement = document.getElementById('result');
-        const historyList = document.getElementById('history');
-        const loginErrorMsg = document.getElementById('login-error-message');
-        const errorMessageDiv = document.getElementById('error-message');
-        const spinButton = document.getElementById('spin-button');
-        const authStatusElement = document.getElementById('auth-status');
-        const chatBadge = document.getElementById('chat-badge'); 
-        
-        // --- Fal Metinleri (TAMAMI) ---
-        const fortunes = [
-            "Aşkın etmiş onu şair\nHer gün yazar bir şiir\nSensin ilham perisi\nTüm satırlar sana dair",
-            "Fazla şey beklemez senden\nİster hayatında çekidüzen\nEvliliktir bunun sonu\nSeversen onu gönülden",
-            "Boynunda var bir kolye\nİki resim bağlı zincire\nBiri o, diğeri sen\nAçar bakar her saniye",
-            "Atmışsın ona bir bakış\nGözlerine tutulmuş kalmış\nKendini bulmuş o anda\nAşkın ona pek yaramış",
-            "Senden bekler hareket\nEdemez konuşmaya cesaret\nSen bir adım atsan ona\nO on adım gelecek",
-            "Bir görünüp bir kayboluyor\nOnu yakalamak zor mu zor\nGöremeyince üzülüyorsun\nSenin de yüreğine düşmüş kor",
-            "Çıkar sık sık şehir dışına\nBir gün gelecek senin oraya\nKopamayacak sonra senden\nYerleşecek evinin yanına",
-            "Her gün bakar aynaya\nGüzel görünmek için sana\nBeğendirecek kendini\nGelirseniz yan yana",
-            "Bir ev döşemiş zevki süper\nBazen pop bazen caz dinler\nHayvanlara sevgisinden\nOkumuş olmuş veteriner",
-            "Onunla tez geçiyor saat\nKonuşmaya kalmıyor fırsat\nSana söyleyecekleri var\nBu kez zamanı sen ayır.",
-            "Sevdiğin biraz duygusal\nAşkınız güzel bir masal\nNazik davran aman ona\nKalbi sanki kristal",
-            "Aranızda var bir resmiyet\nAma değişecek bu vaziyet\nÇok uzun sürmeyecek\nOluşacak samimiyet",
-            "Suya muhtaçtır her yonca\nAnlarsın yalnız kalınca\nTatsızlıklar atlatılır\nBir taraf alttan alınca",
-            "En önemli vasfı sabır\nDur durak bilmeden çalışır\nBir ikinci lig kulübünde\nFutbol oynuyor beş yıldır",
-            "Seni senden çok sever\nİste dünyayı ayağına serer\nSeni güzel yaşatacak\nVermeyecek hiç keder",
-            "Aşkta olmaz gurur\nO sana sen ona mecbur\nHatasını affettiğinde\nBulacaksınız birlikte huzur",
-            "Sabrın sonu selamet\nBu işte var keramet\nHemen pes etmezsen\nKuracaksınız muhabbet",
-            "Siz tanışalı üç gün olmuş\nKalbine bir sıcaklık dolmuş\nTekrar görüşür müyiz diye\nZavallım sararıp solmuş",
-            "Dinliyor kalbinin sesini\nKapatıp güzel gözlerini\nDüşünüyor saatlerce\nSensin en büyük hayali",
-            "Aşk başlıyor yeni yeni\nO, tanımak istiyor seni\nSize neler getirecek\nBu güzel aşk serüveni",
-            "Sevda yolunda yürü dimdik\nKolaydır nişan, evlilik\nO gerçekten doğru seçim\nBizden sana kocaman tebrik",
-            "Huyunuz suyunuz aynı\nEtmez hiç vıdı vıdı\nSenin için biçilmiş kaftan\nSevginiz de karşılıklı",
-            "Bilir kadrini kıymetini\nÂşık sana bir hayli\nBelki haberin yok ama\nO senden pek ümitli",
-            "Geçer aynı yolları\nBir aşağı bir yukarı\nİşi mi var sandın\nSeni görmek amacı",
-            "Dertlenir kavuşanları görünce\nDüşünür seni her gece\nCesaretini toplayacak\nSen de onu beğenince",
-            "Sevdiği yerler: Bodrum, Kaş\nTuttuğu takım Beşiktaş\nHalden anlar birisidir\nHem eş olur hem arkadaş",
-            "Bir uzun yolculuktur yaşam\nBazen yas olur bazen bayram\nGüzel günler çok yakında\nKederlere dalma her akşam",
-            "Boylu boslu, kalıplı\nPek de sıcakkanlı\nKalbini alacak yakında\nBu genç çok kararlı",
-            "Tatlıdır ondaki sertlik\nKızınca bakıyor dik dik\nSen bekletmeyi seversin\nAma seninki pek dakik",
-            "Duy şu çarpan kalbin sesini\nSanki söyler senin ismini\nO hep böyle çarpacak\nSürecek aşkı ebedi",
-            "Parayla olmaz saadet\nAşkı aramaya devam et\nSen o yârdan ayrılırsan\nVardır bunda bir keramet",
-            "Acaba bu bir sihir mi\nNe beş ne on ne yirmi\nSık sık karşılaşıyorsunuz\nBu tesadüf olabilir mi",
-            "Bir gece tertip edilecek\nBu geceye o da gelecek\nO, davetlileri unutup\nSeninle konuşup gülecek",
-            "Onun yüreği şimdi bir kuş\nSanırsın bir hazine bulmuş\nO bakarken gülümsemişsin\nDünyalar hemen onun olmuş",
-            "Dolaşmaya çıkar, yağsa yağmur\nÇiçeklerle, kuşlarla konuşur\nSeni de tez değiştirecek\nOndaki bu sihir, bu uğur",
-            "Yok dünyada aşk gibi bir haz\nİnsanda dertten eser kalmaz\nHislerini ona açmadıkça\nEminim gönlün huzur bulmaz",
-            "“Tanımadan olmaz” denir\nKalp doğru insanı bilir\nGit çekinmeden teklif et\nBazen aşk sonradan gelir",
-            "Sevmez o ince hesapları\nDostudur onun kitapları\nBu yakışıklıda saklıdır\nSorularının cevapları",
-            "Gözlerine kurbanım\nDudaklarına hayranım\nMerak etme sevgilim\nDeğmez sana Nazar’ım",
-            "Gezmez hiç geceleri\nOynamaz kumar, içmez içki\nİyi aile çocuğudur\nOlmasın aklında çelişki",
-            "Yağmur yağmaz her gün\nDağılır gider bu hüzün\nBir gün bulacak seni de\nAşk, para, bir de ün",
-            "Çizer resim karakalem\nHayran ona cümle alem\nKaçırmamak için seni\nAlmış bir dizi önlem",
-            "Hastaymış ne zamandır\nGöstermiş büyük sabır\nAslan gibi, bulacak seni\nArtık içi kıpır kıpır",
-            "Kahramanın var hayali\nİstersin onun gibi cesur biri\nDenizleri aşıp gelecek\nBulacak seni o bahriyeli",
-            "Şansını kaçırdı sanmış\nÜzüntüden solmuş sararmış\nSeni yalnız görünce\nYine hayata bağlanmış",
-            "Koluna taktı mı sepeti\nDoldurur içine vişneleri\nSana da ikram edecek\nGöreceksin pek ilgili",
-            "Bu çok güzel bir meyve\nAşkınızdan size hediye\nBüyüyecek neşeli mutlu\nHayırlı olacak millete",
-            "Gelecek son dakikada haber\nVar sıcak gelişmeler\nAğızdan ağıza dolaşacak\nKavuşacaksınız bu sefer",
-            "Yemeği yapar lezzetli\nElleri çok marifetli\nTutacak elini yakında\nOlacak sana sevgili",
-            "Hayatında herşey kararında\nAma gelişme var pek yakında\nTanışacaksın bir esmerle\nDemeyeceksin hiç elveda",
-            "Aşkından düşmüş bitap\nÇeker her gün azap\nGel evet de biçareye\nKazan büyük sevap",
-            "Bir sağa döner bir sola\nUyuyamaz gece yatakta\nİçi rahat değil ki\nGöremezse seni rüyada",
-            "Annesi üzerine titrer\nKüçük çocuk gibi sever\nOğlu çok kıymetli\nKendi gibi gelin ister",
-            "Bu kadar karamsar olma\nKafanı yok yere yorma\nGençliğinin baharında\nGül gibi sararıp solma",
-            "Dama attım değnek\nOrtası benek benek\nGeçti kızlar sürüsü\nHangisini beğenek",
-            "Duman dumanı arar\nDuman dağları sarar\nCeplerim şeker dolu\nGözlerim seni arar",
-            "Yaşı senden az büyük\nParmağında yok yüzük\nSeninle tanışmak ister\nİçinde yok hiç kötülük",
-            "Oynar hergün basketbol\nBulacak sonunda bir yol\nKalbine bir ok atacak\nAlacak gönlünde başrol",
-            "İster büyü de ister sır\nNe olacak biz bilemeyiz\nAma sen yaşayacaksın\nDoğum gününden çifte sürpriz",
-            "“Akrep” hep yaz olsun ister\nOna göre değil gam-keder\nBir sürpriz yapmak istersen\nOna bir müzik kutusu ver",
-            "Sanma aranız uçurum\nYapma şimdiden yorum\nBulacak bir yolunu\nDiyecek seni seviyorum",
-            "Değiştirmekle meşgul imajını\nTarar her gün saçını başını\nHepsi gözüne girmek için\nSana ne zamandır sevdalı",
-            "Yolculuk var pek yakında\nDiyeceksin ona elveda\nAma uzun sürmez ayrılık\nKörüklenir kara sevda",
-            "Sürekli ona yakın dur\nDostlarıyla yakınlık kur\nHoşlandığı şeyleri öğren\nBu iş kendiliğinden olur",
-            "Git yanına o müsait\nAranızda yok engel geçit\nOda ister senle olmak\nÇak aşkına bir kibrit",
-            "Aşka sünger çekmiş\nKalbi çok zedelenmiş\nSeninle geçmişi unutacak\nÇünkü seni çok beğenmiş",
-            "Töre de ne diyecek\nSonra isyan edecek\nSeninle olmak için\nKuralları delecek",
-            "Gezdirir parkta köpeğini\nHer Salı ve Cumartesi\nRastlaşınca patika yolda\nGelecek aşk çok ani",
-            "Hayır dersen gelmez işine\nRazı olmaz kaderine\nBaşkasında gözü yok\nOnun gönlü hep sende",
-            "Verecek sana bır çiçek\nKoklayacaksın onu her gece\nDoyamayacaksın ona\nTabi senin o çiçek",
-            "İçinde şüphe kalmamış\nSana olan aşkını anlamış\nEvet dersen sen de\nGelecek sana tıpış tıpış",
-            "Çabuk geçer sayılı gün\nDeğil ki bu ebedi sürgün\nPeri masallarındaki gibi\nGörünüyor bir düğün",
-            "Üzüm toplar bağda\nGelecek sana tenhada\nAşkını ilan edecek\nSenin de gönlün onda",
-            "Onun kalbi çok geniş\nSana aşkı görülmemiş\nSen ona evet demeden\nO sana kalbini vermiş",
-            "Kopacak bir tayfun\nOlacak sana mecnun\nBekle gelecek teklif\nOkuldan olunca mezun",
-            "Gözü senin üzerinde\nAçılacak ileride\nCesaretini toplayıp\nTakacak beşibiyerde",
-            "Görmüş seni pazarda\nSen seçerken lahana\nHer hafta gelir artık\nGöreyim diye bir daha",
-            "Gelecek uzun yoldan\nYapacak güzel bir plan\nGönlün ona kayınca\nEdecek aşkını ilan",
-            "Gelecek bütün kalbiyle\nSöz verecek olmaya seninle\nBirlikte uzun yıllar geçecek\nAşkınız ölmeyecek evlilikle",
-            "Konuşması çok canayakın\nAma bugünlerde biraz dalgın\nÂşık olmuş sana\nİçinde var büyük yangın",
-            "Yaz gelecek hayatına\nBaktığında sen ona\nBuzları çözülecek kalbinin\nDayanamaz bu yangına",
-            "Uzun uzun kirpikleri\nDelecek kalbini\nBir gülüşün yetecek\nDiyecek sana gel bari",
-            "Ne zaman baksan içi gider\nGözlerinin içi güler\nKalbi çarpar seninle\nOnun burcu ikizler",
-            "İnadını kır bu sefer\nGel bir şans daha ver\nDostluktan öte sevgisi\nBir kez denemeye değer",
-            "Sen gül deyince ona\nAlır onu bu kahkaha\nNe desen fazlasını yapar\nDerler buna kara sevda",
-            "Gelir gider arada bir\nBirkaç gün olur misafir\nSeni görünce bu sefer\nAşkı olacak bir nehir",
-            "Arkandan koşmuş yetişememiş\nBağırmış sesi kesilmiş\nDuy artık şu biçareyi\nAşkın onu derbeder etmiş",
-            "İstemez saçları takma\nKaşı, gözü, burnu yapma\nGüzel olsun senin gibi\nO da doğallıktan yana",
-            "Onu bezdiremezsin sen\nAnlıyor tam altı dilden\nHem maaşı hem huyu güzel\nŞaka değil, o bir çevirmen",
-            "Yâr diyecek “Gözümün nuru\niste yağdırayım yağmuru”\nMertçe seviyor, âşık sana\nArasan bulunmaz kusuru",
-            "Gönül işinde “sabır” diyor\nElbet bir bekleyen vardır diyor\nBaş göz etmeye çalışanlara\nBu iş böyle olmaz, hayır diyor",
-            "Yıldız misali, mavi mavi\nTutuşmuş bu aşkın alevi\nBaban da razı bu işe ama\nBilirsin: kız evi naz evi",
-            "Yanından su gibi akıyor\nGüya çaktırmadan bakıyor\nSenin umursamaz hallerin\nOnun canını çok sıkıyor",
-            "Eksik olmaz dilinden iltifat\nYaptığı iş de ihracat\nHastalanırsan korkma\nEder bir ömür refakat",
-            "Falda bir kutu gördük\nBu pembe kutu küçücük\nBir hediye almış sana\nBir kolye ya da bir yüzük",
-            "Ona gülen gözlerle baktın\nİyi bir intiba bıraktın\nYanmaya hazır kalbinde\nParlak bir kavılcım çaktın",
-            "Ondan çok hoşlandıysan eğer\nBirkaç hafta beklemeye değer\nHislerinden emin olmak için\nHem ona hem kendine zaman ver",
-            "Ev bark almış çocukcağız\nMesut olmak istiyor yalnız\nİsmi baş harflerde saklı\nReddetmek onu, imkânsız",
-            "Tekstil ürünleri satıyor\nParasına para katıyor\nSana saf bir aşkla bağlanmış\nYüreği seninle atıyor",
-            "Cesaretin yoksa şayet\nHoşlandığını belli et\nOnun sana tavırları\nBence açık bir davet"
-        ];
-        
-        function requestNotificationPermission() {
-            if (!('Notification' in window) || Notification.permission !== 'default') {
-                return;
-            }
-            Notification.requestPermission().then(permission => {
-                if (permission === 'granted') {
-                    notificationPermissionGranted = true;
-                    new Notification('Sakız Falı: Bildirimler Açık', {
-                        body: 'Yeni mesajları sistem bildirimiyle alacaksınız!',
-                        icon: 'https://i.imgur.com/your-app-icon.png' 
-                    });
-                } else {
-                    notificationPermissionGranted = false;
-                }
-            }).catch(error => {
-                console.error("Bildirim izni istenirken hata:", error);
-            });
-        }
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                document.getElementById('auth-status').textContent = `Kimlik ID: ${userId}`;
+                const storedName = localStorage.getItem('userName');
+                if (storedName) {
+                    userName = storedName;
+                    showMainScreen();
+                }
+            } else {
+                signInAnonymously(auth);
+            }
+        });
 
-        function toTitleCase(str) {
-            if (!str) return '';
-            return str.replace(/\w\S*/g, function(txt) {
-                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-            });
-        }
-        
-        function getFortuneCollectionRef() {
-            return collection(db, `artifacts/${customAppId}/public/data/fortunes`);
-        }
-        
-        function getChatCollectionRef() {
-            return collection(db, `artifacts/${customAppId}/public/data/chat`);
-        }
+        function showMainScreen() {
+            document.getElementById('greeting').textContent = `Hoş Geldin, ${userName}!`;
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('main').style.display = 'block';
+            setupFortuneListener();
+        }
 
-        async function initFirebase() {
-            try {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                
-                // KRİTİK GİRİŞ DÜZELTMESİ: Oturum kontrolü daha sağlam hale getirildi.
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        // KULLANICI OTURUMU AÇIK
-                        userId = user.uid;
-                        authStatusElement.textContent = `Kimlik ID: ${userId}`;
-                        isAuthReady = true;
-                        
-                        if (!isListenersSetup) {
-                            setupFortuneListener();
-                            setupChatBadgeListener(); 
-                            isListenersSetup = true;
-                        }
+        window.login = function() {
+            const inputName = document.getElementById('username').value.trim();
+            if (inputName.length < 3) return;
+            userName = inputName;
+            localStorage.setItem('userName', userName);
+            showMainScreen();
+        };
 
-                        const storedName = localStorage.getItem('userName');
-                        if (storedName) {
-                            userName = storedName;
-                            showMainScreen(); // Kullanıcı adı varsa Ana Ekranı göster
-                        } else {
-                            // Anonim oturum var ama isim yok (Giriş ekranında kal)
-                            loginDiv.style.display = 'block';
-                            mainDiv.style.display = 'none';
-                        }
-                        
-                    } else {
-                        // OTURUM KAPALI
-                        userId = null;
-                        isAuthReady = true;
-                        loginDiv.style.display = 'block';
-                        mainDiv.style.display = 'none';
-                    }
-                    errorMessageDiv.classList.add('hidden');
-                });
-                
-                // Anonim girişi başlat
-                await signInAnonymously(auth);
+        window.logout = function() {
+            localStorage.removeItem('userName');
+            location.reload();
+        };
 
-            } catch (error) {
-                console.error("Firebase Başlatma Hatası:", error);
-                errorMessageDiv.textContent = `Hata: Veritabanı bağlantısı kurulamadı. Detay: ${error.message}. Kural/API kontrolü yapın.`;
-                errorMessageDiv.classList.remove('hidden');
-            }
-        }
+        function setupFortuneListener() {
+            const q = query(collection(db, `artifacts/${customAppId}/public/data/fortunes`), orderBy('timestamp', 'desc'));
+            onSnapshot(q, (snapshot) => {
+                const historyList = document.getElementById('history');
+                historyList.innerHTML = '';
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const liked = data.reactedBy?.includes(userId);
+                    historyList.innerHTML += `
+                        <li class="p-3 border border-gray-100 rounded-xl bg-gray-50">
+                            <div class="text-[10px] font-bold text-teal-600 mb-1 uppercase">${data.userName}</div>
+                            <p class="text-sm text-gray-700">${data.text}</p>
+                            <button onclick="toggleReaction('${docSnap.id}')" class="text-xs ${liked ? 'text-red-500' : 'text-gray-400'}">❤ ${data.reactedBy?.length || 0}</button>
+                        </li>`;
+                });
+            });
+        }
 
-        function showMainScreen() {
-            if (!userName) return; 
+        window.toggleReaction = async function(docId) {
+            const ref = doc(db, `artifacts/${customAppId}/public/data/fortunes`, docId);
+            const snap = await getDoc(ref);
+            if (snap.exists()) {
+                const liked = snap.data().reactedBy?.includes(userId);
+                await updateDoc(ref, { reactedBy: liked ? arrayRemove(userId) : arrayUnion(userId) });
+            }
+        };
 
-            greetingElement.textContent = `Hoş Geldin, ${userName}! Hadi bir fal çek.`;
-            loginDiv.style.display = 'none';
-            mainDiv.style.display = 'block';
-            
-            spinButton.disabled = !isAuthReady;
-            spinButton.textContent = isAuthReady ? "Fal Çek!" : "Yükleniyor...";
-        }
-
-        window.login = function() {
-            const inputName = usernameInput.value.trim();
-
-            if (inputName.length < 3) {
-                loginErrorMsg.textContent = "Kullanıcı adı en az 3 karakter olmalıdır.";
-                loginErrorMsg.classList.remove('hidden');
-                return;
-            }
-            loginErrorMsg.classList.add('hidden');
-
-            userName = toTitleCase(inputName); 
-            localStorage.setItem('userName', userName); 
-
-            requestNotificationPermission();
-
-            showMainScreen();
-        }
-        
-        window.logout = function() {
-            if (document.activeElement) {
-                document.activeElement.blur();
-            }
-
-            localStorage.removeItem('userName'); 
-            userName = "";
-            localStorage.removeItem('currentChatCount'); 
-            localStorage.removeItem('lastSeenChatCount');
-
-            mainDiv.style.display = 'none';
-            loginDiv.style.display = 'block';
-            resultElement.textContent = "Falınız Burada Gözükecek...";
-            resultElement.classList.remove('bg-gray-100', 'border-gray-400');
-            resultElement.classList.add('bg-yellow-100', 'border-yellow-500'); 
-            usernameInput.focus();
-        }
-
-        // --- Fal İşlemleri ---
-
-        window.spinFal = async function() {
-            if (fortunes.length === 0 || !db || !isAuthReady || !userId || spinButton.disabled) {
-                if (!isAuthReady) console.error("Firebase Auth hazır değil.");
-                return;
-            }
-            spinButton.disabled = true;
-            spinButton.textContent = "Fal Çekiliyor...";
-            resultElement.textContent = "Sakız Kağıdınız Açılıyor..";
-            resultElement.classList.remove('bg-yellow-100', 'border-yellow-500'); 
-            resultElement.classList.add('bg-gray-100', 'border-gray-400'); 
-            const randomIndex = Math.floor(Math.random() * fortunes.length);
-            const fortuneText = fortunes[randomIndex];
-            
-            setTimeout(async () => {
-                resultElement.textContent = fortuneText;
-                resultElement.classList.remove('bg-gray-100', 'border-gray-400'); 
-                resultElement.classList.add('bg-yellow-100', 'border-yellow-500', 'animate-pulse'); 
-                try {
-                    await addDoc(getFortuneCollectionRef(), {
-                        userId: userId,
-                        userName: userName,
-                        text: fortuneText,
-                        timestamp: new Date().toISOString(),
-                        reactedBy: [], 
-                    });
-                } catch (e) {
-                    errorMessageDiv.textContent = `Hata: Fal kaydedilemedi: ${e.message}`;
-                    errorMessageDiv.classList.remove('hidden');
-                }
-                spinButton.disabled = false;
-                spinButton.textContent = "Fal Çek!";
-                setTimeout(() => resultElement.classList.remove('animate-pulse'), 1000); 
-            }, 1500); 
-        }
-        
-        window.deleteFortune = async function(docId, ownerId) {
-            if (ownerId !== userId) return; 
-
-            if (!db) return;
-            try {
-                await deleteDoc(doc(getFortuneCollectionRef(), docId));
-            } catch (e) {
-                console.error("Fal silinirken hata:", e);
-            }
-        }
-        
-        window.toggleReaction = async function(docId) {
-            if (!db || !userId) return;
-
-            const falDocRef = doc(getFortuneCollectionRef(), docId);
-
-            try {
-                const snapshot = await getDoc(falDocRef);
-
-                if (snapshot.exists()) {
-                    const data = snapshot.data();
-                    const reactedBy = data.reactedBy || []; 
-
-                    const hasReacted = reactedBy.includes(userId);
-
-                    if (hasReacted) {
-                        await updateDoc(falDocRef, {
-                            reactedBy: arrayRemove(userId)
-                        });
-                    } else {
-                        await updateDoc(falDocRef, {
-                            reactedBy: arrayUnion(userId)
-                        });
-                    }
-                }
-            } catch (e) {
-                console.error("Tepki (Kalp) işlemi hatası:", e);
-            }
-        }
-        
-        function setupFortuneListener() {
-            if (!db || !isAuthReady) return;
-
-            const q = query(getFortuneCollectionRef(), orderBy('timestamp', 'desc'));
-
-            onSnapshot(q, (snapshot) => {
-                const history = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    history.push({ 
-                        id: doc.id,
-                        userId: data.userId,
-                        userName: data.userName,
-                        text: data.text,
-                        timestamp: new Date(data.timestamp), 
-                        reactedBy: data.reactedBy || [], 
-                    });
-                });
-                
-                history.sort((a, b) => b.timestamp - a.timestamp); 
-
-                renderHistory(history);
-            }, (error) => {
-                console.error("Firestore Fal Akışı Hatası:", error);
-                errorMessageDiv.textContent = `Hata: Fal akışı yüklenemedi: ${error.message}`;
-                errorMessageDiv.classList.remove('hidden');
-                historyList.innerHTML = `<li class="text-red-500 text-center p-2 bg-red-50 rounded-md">Veritabanı bağlantısı kesildi.</li>`;
-            });
-        }
-
-        function renderHistory(history) {
-            historyList.innerHTML = ''; 
-
-            if (history.length === 0) {
-                historyList.innerHTML = `<li class="text-gray-500 text-center p-2 bg-gray-50 rounded-md">Henüz çevrilmiş fal yok. Hadi ilk falı siz çevirin!</li>`;
-                return;
-            }
-
-            history.forEach(fal => {
-                const li = document.createElement('li');
-                
-                let timeStr = "Bilinmeyen Zaman";
-                try {
-                     timeStr = new Date(fal.timestamp).toLocaleString('tr-TR', { 
-                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' 
-                    });
-                } catch {}
-
-                const isMyFortune = fal.userId === userId;
-                const reactedBy = fal.reactedBy || []; 
-                const reactionCount = reactedBy.length;
-                const userHasReacted = reactedBy.includes(userId);
-                const heartColor = userHasReacted ? 'text-red-500' : 'text-gray-400 hover:text-red-400';
-                
-                const reactionHtml = `
-                    <div class="flex items-center space-x-1">
-                        <button onclick="toggleReaction('${fal.id}')" title="Kalp Bırak" class="${heartColor} transition duration-150 p-1 rounded-full hover:bg-red-50">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-.318-.318a4.5 4.5 0 00-6.364 0z" />
-                            </svg>
-                        </button>
-                        <span class="text-sm text-gray-600 font-semibold">${reactionCount}</span>
-                    </div>
-                `;
-
-                let deleteButtonsHtml = (isMyFortune) ? `
-                        <button onclick="deleteFortune('${fal.id}', '${fal.userId}')" title="Herkes İçin Kalıcı Sil" class="text-red-400 hover:text-red-600 transition duration-150 p-1.5 rounded-full hover:bg-red-50 ml-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 
+        window.spinFal = async function() {
+            const f = ["Gülüşün her şeyi güzelleştiriyor.", "Bugün harika bir gün!", "Kalbinin sesini dinle."];
+            const text = f[Math.floor(Math.random()*f.length)];
+            await addDoc(collection(db, `artifacts/${customAppId}/public/data/fortunes`), {
+                userId, userName, text, timestamp: new Date().toISOString(), reactedBy: []
+            });
+        };
+    </script>
+</body>
+</html>
