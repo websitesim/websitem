@@ -2,54 +2,52 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sakız Falı</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Sitenin orijinal temiz tasarımı */
-        body { background-color: #f3f4f6; font-family: sans-serif; }
-        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px; width: 100%; max-width: 450px; }
-        .bday-card { border: 2px solid #f472b6; background: #fff1f2; margin-bottom: 12px; border-radius: 12px; padding: 15px; position: relative; }
-        .bday-label { position: absolute; top: -10px; right: 10px; background: #f472b6; color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
-        
-        /* Balonlar için en basit ve kasmayan kod */
-        .balloon { position: fixed; bottom: -100px; width: 40px; height: 50px; border-radius: 50%; z-index: 100; animation: floatUp 8s linear forwards; }
-        @keyframes floatUp { to { transform: translateY(-120vh); } }
+        body { background-color: #f0fdfa; font-family: 'Inter', sans-serif; margin: 0; padding: 10px; }
+        .card { background: white; border-radius: 1.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 420px; padding: 1.5rem; margin-top: 1rem; }
+        .bday-card { border: 2px solid #f472b6; border-radius: 1rem; padding: 1rem; margin-bottom: 0.75rem; background: #fff5f7; position: relative; }
+        .bday-tag { position: absolute; -top: 10px; right: 10px; background: #f472b6; color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
+        .balloon { position: fixed; bottom: -100px; width: 40px; height: 50px; border-radius: 50%; z-index: 50; animation: floatUp 8s linear forwards; }
+        @keyframes floatUp { to { transform: translateY(-120vh) rotate(20deg); } }
+        .fortune-text { white-space: pre-line; word-break: break-word; overflow-wrap: break-word; }
     </style>
 </head>
-<body class="flex flex-col items-center p-4">
+<body class="flex flex-col items-center">
 
-    <div id="bday-assets" style="display:none;">
+    <div id="bday-layer" style="display:none;">
+        <div id="balloon-container" style="pointer-events:none;"></div>
         <audio id="bday-music" loop><source src="istanbul.mp3" type="audio/mpeg"></audio>
-        <div id="balloon-box"></div>
-        <div class="fixed top-4 left-0 right-0 z-[1000] flex justify-center px-4">
-            <div class="bg-white border-2 border-pink-500 rounded-full py-2 px-6 shadow-2xl flex items-center space-x-4">
-                <span class="text-pink-600 font-bold text-sm">İyi ki doğdun! 🎉</span>
-                <button onclick="toggleMusic()" id="m-btn" class="bg-pink-500 text-white text-xs px-3 py-1 rounded-full italic">Müziği Aç</button>
-            </div>
+        <div class="fixed top-2 z-[100] bg-white border border-pink-300 px-4 py-1 rounded-full shadow-md flex items-center space-x-2">
+            <span class="text-pink-500 font-bold text-xs">Mutlu Yıllar! 🎂</span>
+            <button onclick="document.getElementById('bday-music').paused ? document.getElementById('bday-music').play() : document.getElementById('bday-music').pause()" class="text-[10px] bg-pink-100 text-pink-600 px-2 py-1 rounded-md font-bold uppercase">Müzik</button>
         </div>
     </div>
 
-    <h1 class="text-3xl font-bold text-teal-600 my-6">Sunanın Falları</h1>
+    <h1 class="text-2xl font-black text-teal-600 mt-6 mb-2">Sunanın Falları</h1>
 
-    <div class="card">
-        <div id="login-section">
-            <input type="text" id="uname" placeholder="İsminiz" class="w-full border p-3 rounded-lg mb-4">
-            <button onclick="startApp()" class="w-full bg-teal-500 text-white font-bold py-3 rounded-lg">Giriş Yap</button>
+    <div id="login-section" class="card">
+        <input type="text" id="user-input" placeholder="İsminiz nedir?" class="w-full border-2 border-teal-50 p-3 rounded-xl mb-3 outline-none focus:border-teal-400">
+        <button onclick="doLogin()" class="w-full bg-teal-500 text-white font-bold py-3 rounded-xl shadow-lg">Giriş Yap</button>
+    </div>
+
+    <div id="main-section" class="card hidden">
+        <div class="flex justify-between items-center mb-4 text-xs">
+            <span id="name-label" class="font-bold text-teal-700"></span>
+            <button onclick="localStorage.removeItem('sn_user'); location.reload();" class="text-gray-400">Çıkış</button>
         </div>
 
-        <div id="main-section" style="display:none;">
-            <div class="flex justify-between text-sm mb-4 text-gray-500">
-                <span id="welcome"></span>
-                <button onclick="location.reload()">Çıkış</button>
+        <button onclick="draw()" id="draw-btn" class="w-full bg-pink-500 text-white font-bold py-4 rounded-2xl text-lg shadow-xl mb-4">Fal Çek!</button>
+        
+        <div id="result-box" class="p-4 bg-orange-50 border-l-4 border-orange-400 rounded-r-xl italic text-gray-700 mb-6 text-center fortune-text">
+            Falınız burada belirecek...
+        </div>
+
+        <h3 class="font-bold text-gray-800 mb-3 text-sm">📜 Akış</h3>
+        <div id="history-container" class="space-y-3 max-h-[350px] overflow-y-auto pr-1">
             </div>
-            
-            <button onclick="getFortune()" id="f-btn" class="w-full bg-pink-500 text-white font-bold py-4 rounded-xl text-xl shadow-lg mb-6">Fal Çek!</button>
-            <div id="result" class="text-center italic text-gray-700 border-b pb-6 mb-4">Falın burada görünecek...</div>
-
-            <h3 class="font-bold text-gray-800 mb-4">Geçmiş Fallar</h3>
-            <div id="history-list" class="space-y-3"></div>
-        </div>
     </div>
 
     <script type="module">
@@ -61,42 +59,34 @@
         const db = getFirestore(app);
         let user = localStorage.getItem('sn_user');
 
-        // Tarih ve Doğum Günü Kontrolü
-        const d = new Date();
-        const isBday = (d.getMonth() === 11 && d.getDate() === 31) || (d.getMonth() === 0 && d.getDate() <= 26);
+        const now = new Date();
+        const isBday = (now.getMonth() === 11 && now.getDate() === 31) || (now.getMonth() === 0 && now.getDate() <= 26);
 
         if(isBday) {
-            document.getElementById('bday-assets').style.display = 'block';
+            document.getElementById('bday-layer').style.display = 'block';
             setInterval(() => {
                 const b = document.createElement('div');
                 b.className = 'balloon';
                 b.style.left = Math.random() * 90 + 'vw';
-                b.style.background = `hsl(${Math.random() * 360}, 70%, 60%)`;
-                document.getElementById('balloon-box').appendChild(b);
+                b.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                document.getElementById('balloon-container').appendChild(b);
                 setTimeout(() => b.remove(), 8000);
-            }, 1000);
+            }, 1200);
         }
 
-        window.toggleMusic = () => {
-            const m = document.getElementById('bday-music');
-            const btn = document.getElementById('m-btn');
-            if(m.paused) { m.play(); btn.innerText = "Durdur"; }
-            else { m.pause(); btn.innerText = "Müziği Aç"; }
-        };
-
-        window.startApp = () => {
-            const name = document.getElementById('uname').value.trim();
-            if(name) { localStorage.setItem('sn_user', name); location.reload(); }
+        window.doLogin = () => {
+            const val = document.getElementById('user-input').value.trim();
+            if(val) { localStorage.setItem('sn_user', val); location.reload(); }
         };
 
         if(user) {
             document.getElementById('login-section').style.display = 'none';
-            document.getElementById('main-section').style.display = 'block';
-            document.getElementById('welcome').innerText = "Selam " + user;
+            document.getElementById('main-section').classList.remove('hidden');
+            document.getElementById('name-label').innerText = "Selam, " + user;
             
-            const q = query(collection(db, "fortunes"), orderBy("timestamp", "desc"));
+            const q = query(collection(db, "fortunes_v2"), orderBy("timestamp", "desc"));
             onSnapshot(q, (snap) => {
-                const list = document.getElementById('history-list');
+                const list = document.getElementById('history-container');
                 list.innerHTML = '';
 
                 if(isBday) {
@@ -105,33 +95,36 @@
                         {h: "Biriciğim 🌸", t: "Pastanın mumu yanıyor\nYeni yaş sana yakışıyor\nGülüşün ortalığı ısıtıyor\nBugün herkes seni konuşuyor"},
                         {h: "Gökyüzüm ✨", t: "Pasta kesildi mum söndü\nGülüşün gönlümündü\nDoğum günün bahaneydi\nGözlerim sana döndü"}
                     ];
-                    bdays.forEach(item => {
-                        list.innerHTML += `<div class="bday-card"><span class="bday-label">${item.h}</span><p class="text-sm italic whitespace-pre-line">${item.t}</p></div>`;
+                    bdays.forEach(i => {
+                        list.innerHTML += `<div class="bday-card"><span class="bday-tag">${i.h}</span><p class="text-sm italic fortune-text font-medium text-pink-700">${i.t}</p></div>`;
                     });
+                    list.innerHTML += `<div class="text-center text-[9px] text-gray-400 font-bold py-2 tracking-widest uppercase">--- Genel Fallar ---</div>`;
                 }
 
                 snap.forEach(s => {
-                    const data = s.data();
-                    const liked = data.likes?.includes(user);
+                    const d = s.data();
+                    const liked = d.likes?.includes(user);
                     list.innerHTML += `
-                        <div class="p-3 border rounded-lg bg-white shadow-sm">
-                            <div class="flex justify-between text-[10px] font-bold text-teal-600 mb-1 uppercase"><span>${data.user}</span></div>
-                            <p class="text-sm text-gray-700 mb-2">${data.text}</p>
-                            <button onclick="like('${s.id}', ${liked})" class="text-xs ${liked ? 'text-red-500' : 'text-gray-400'}">❤ ${data.likes?.length || 0}</button>
+                        <div class="p-3 border border-gray-100 rounded-xl bg-gray-50/50 mb-2">
+                            <div class="flex justify-between text-[10px] font-bold text-teal-600 mb-1"><span>${d.user}</span></div>
+                            <p class="text-sm text-gray-700 fortune-text mb-2">${d.text}</p>
+                            <button onclick="like('${s.id}', ${liked})" class="text-xs ${liked ? 'text-red-500' : 'text-gray-300'}">❤ ${d.likes?.length || 0}</button>
                         </div>`;
                 });
             });
         }
 
-        window.getFortune = async () => {
-            const f = ["Seni çok seviyor!", "Güzel günler yakın.", "Bir sürpriz kapıda!"];
+        window.draw = async () => {
+            const btn = document.getElementById('draw-btn');
+            const res = document.getElementById('result-box');
+            const f = ["Gülüşün her şeyi güzelleştiriyor.", "Bugün senin için harika bir gün!", "Kalbinin sesini dinle, o seni yanıltmaz."];
             const text = f[Math.floor(Math.random()*f.length)];
-            document.getElementById('result').innerText = text;
-            await addDoc(collection(db, "fortunes"), { text, user, timestamp: Date.now(), likes: [] });
+            res.innerText = text;
+            await addDoc(collection(db, "fortunes_v2"), { text, user, timestamp: Date.now(), likes: [] });
         };
 
         window.like = async (id, liked) => {
-            await updateDoc(doc(db, "fortunes", id), { likes: liked ? arrayRemove(user) : arrayUnion(user) });
+            await updateDoc(doc(db, "fortunes_v2", id), { likes: liked ? arrayRemove(user) : arrayUnion(user) });
         };
     </script>
 </body>
