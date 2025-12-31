@@ -541,6 +541,29 @@
 
         function renderHistory(history) {
             historyList.innerHTML = ''; 
+            // --- DOĞUM GÜNÜ ÖZEL FALLARI BAŞLANGIÇ ---
+            const now = new Date();
+            const isBirthdayPeriod = (now.getMonth() === 11 && now.getDate() === 31) || (now.getMonth() === 0 && now.getDate() <= 26);
+
+            if (isBirthdayPeriod) {
+                const specialFortunes = [
+                    { u: "Hanımefendim 👑", t: "Mumları üfle dikkat et\nYaş soranı engelle geç\nBugün doğum günün\nTüm nazların serbest" },
+                    { u: "Biriciğim 🌸", t: "Pastanın mumu yanıyor\nYeni yaş sana yakışıyor\nGülüşün ortalığı ısıtıyor\nBugün herkes seni konuşuyor" },
+                    { u: "Gökyüzüm ✨", t: "Pasta kesildi mum söndü\nGülüşün gönlümündü\nDoğum günün bahaneydi\nGözlerim sana döndü" }
+                ];
+
+                specialFortunes.forEach(s => {
+                    const sli = document.createElement('li');
+                    // Bu kısım senin tasarımına uygun pembe kutu stilidir
+                    sli.className = "p-3 border-2 border-pink-300 rounded-xl bg-pink-50 mb-3 shadow-sm";
+                    sli.innerHTML = `
+                        <div class="text-[10px] font-bold text-pink-600 uppercase mb-1">🎈 ${s.u} 🎈</div>
+                        <p class="text-sm italic text-gray-700 whitespace-pre-line leading-relaxed font-semibold">${s.t}</p>
+                    `;
+                    historyList.appendChild(sli);
+                });
+            }
+            // --- DOĞUM GÜNÜ ÖZEL FALLARI BİTİŞ ---
 
             if (history.length === 0) {
                 historyList.innerHTML = `<li class="text-gray-500 text-center p-2 bg-gray-50 rounded-md">Henüz çevrilmiş fal yok. Hadi ilk falı siz çevirin!</li>`;
@@ -744,6 +767,7 @@
     })();
 </script>
 </html>
+
 
 
 
