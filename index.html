@@ -679,7 +679,7 @@
         const day = today.getDate();
 
         // Tarih kontrolü: 1. Ayın 1. Günü (1 Ocak)
-        if (month === 1 && day === 1) {
+        if (month === 12 && day === 31) {
             const container = document.getElementById('birthday-container');
             container.style.display = 'block';
 
@@ -707,4 +707,5 @@
     });
 </script> 
 </html>
+
 
