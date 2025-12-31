@@ -96,6 +96,7 @@
     <div class="cloud cloud1"></div>
     <div class="cloud cloud2"></div>
     <div class="cloud cloud3"></div>
+
     
     <h1 class="text-4xl font-bold mb-8 z-10 text-teal-600 text-shadow-lg">
         Sunanın Falları
@@ -114,6 +115,7 @@
     </div>
 
     <div id="main" class="card mt-6 relative" style="display:none;">
+        
         <button onclick="logout()"
                 class="absolute top-2 right-2 text-sm text-teal-600 hover:text-teal-800 font-semibold p-2 rounded-lg transition duration-150 flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -148,9 +150,11 @@
             </ul>
         </div>
         <p class="text-xs text-red-500 mt-2 text-center hidden" id="error-message">Hata: Veritabanı bağlantısı kurulamadı. Firebase ayarlarınızı kontrol edin.</p>
+        
     </div>
 
     <script type="module">
+        // Firebase Modüllerini İçe Aktar
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, addDoc, onSnapshot, collection, query, deleteDoc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -165,7 +169,9 @@
         let userName = "";
         let isAuthReady = false; 
         let isListenersSetup = false; 
+        let notificationPermissionGranted = (('Notification' in window) && Notification.permission === 'granted'); 
 
+        // --- VERİTABANI BAĞLANTI AYARLARI ---
         const firebaseConfig = {
           apiKey: "AIzaSyCQ8ZJdTmdIxGjzcxoc08w7hl0SfAyekH8",
           authDomain: "skzfli.firebaseapp.com",
@@ -175,8 +181,10 @@
           appId: "1:748486506131:web:1dbcd53a4ba00f74eb7f66",
           measurementId: "G-LW1TBEV8HY" 
         };
-        const customAppId = firebaseConfig.projectId;
+        const customAppId = firebaseConfig.projectId; 
+        // ------------------------------------
 
+        // UI Elementleri 
         const loginDiv = document.getElementById('login');
         const mainDiv = document.getElementById('main');
         const usernameInput = document.getElementById('username');
@@ -187,7 +195,9 @@
         const errorMessageDiv = document.getElementById('error-message');
         const spinButton = document.getElementById('spin-button');
         const authStatusElement = document.getElementById('auth-status');
-
+        const chatBadge = document.getElementById('chat-badge'); 
+        
+        // --- Fal Metinleri (TAMAMI) ---
         const fortunes = [
             "Aşkın etmiş onu şair\nHer gün yazar bir şiir\nSensin ilham perisi\nTüm satırlar sana dair",
             "Fazla şey beklemez senden\nİster hayatında çekidüzen\nEvliliktir bunun sonu\nSeversen onu gönülden",
@@ -195,7 +205,7 @@
             "Atmışsın ona bir bakış\nGözlerine tutulmuş kalmış\nKendini bulmuş o anda\nAşkın ona pek yaramış",
             "Senden bekler hareket\nEdemez konuşmaya cesaret\nSen bir adım atsan ona\nO on adım gelecek",
             "Bir görünüp bir kayboluyor\nOnu yakalamak zor mu zor\nGöremeyince üzülüyorsun\nSenin de yüreğine düşmüş kor",
-            "Çıkar sık sık şehir dışına\nBir gün gelecek senin oraya\nKopamayacak sonra senden\Yerleşecek evinin yanına",
+            "Çıkar sık sık şehir dışına\nBir gün gelecek senin oraya\nKopamayacak sonra senden\nYerleşecek evinin yanına",
             "Her gün bakar aynaya\nGüzel görünmek için sana\nBeğendirecek kendini\nGelirseniz yan yana",
             "Bir ev döşemiş zevki süper\nBazen pop bazen caz dinler\nHayvanlara sevgisinden\nOkumuş olmuş veteriner",
             "Onunla tez geçiyor saat\nKonuşmaya kalmıyor fırsat\nSana söyleyecekleri var\nBu kez zamanı sen ayır.",
@@ -249,7 +259,7 @@
             "Oynar hergün basketbol\nBulacak sonunda bir yol\nKalbine bir ok atacak\nAlacak gönlünde başrol",
             "İster büyü de ister sır\nNe olacak biz bilemeyiz\nAma sen yaşayacaksın\nDoğum gününden çifte sürpriz",
             "“Akrep” hep yaz olsun ister\nOna göre değil gam-keder\nBir sürpriz yapmak istersen\nOna bir müzik kutusu ver",
-            "Sanma aranız uçurum\Yapma şimdiden yorum\nBulacak bir yolunu\nDiyecek seni seviyorum",
+            "Sanma aranız uçurum\nYapma şimdiden yorum\nBulacak bir yolunu\nDiyecek seni seviyorum",
             "Değiştirmekle meşgul imajını\nTarar her gün saçını başını\nHepsi gözüne girmek için\nSana ne zamandır sevdalı",
             "Yolculuk var pek yakında\nDiyeceksin ona elveda\nAma uzun sürmez ayrılık\nKörüklenir kara sevda",
             "Sürekli ona yakın dur\nDostlarıyla yakınlık kur\nHoşlandığı şeyleri öğren\nBu iş kendiliğinden olur",
@@ -290,6 +300,40 @@
             "Tekstil ürünleri satıyor\nParasına para katıyor\nSana saf bir aşkla bağlanmış\nYüreği seninle atıyor",
             "Cesaretin yoksa şayet\nHoşlandığını belli et\nOnun sana tavırları\nBence açık bir davet"
         ];
+        
+        function requestNotificationPermission() {
+            if (!('Notification' in window) || Notification.permission !== 'default') {
+                return;
+            }
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    notificationPermissionGranted = true;
+                    new Notification('Sakız Falı: Bildirimler Açık', {
+                        body: 'Yeni mesajları sistem bildirimiyle alacaksınız!',
+                        icon: 'https://i.imgur.com/your-app-icon.png' 
+                    });
+                } else {
+                    notificationPermissionGranted = false;
+                }
+            }).catch(error => {
+                console.error("Bildirim izni istenirken hata:", error);
+            });
+        }
+
+        function toTitleCase(str) {
+            if (!str) return '';
+            return str.replace(/\w\S*/g, function(txt) {
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            });
+        }
+        
+        function getFortuneCollectionRef() {
+            return collection(db, `artifacts/${customAppId}/public/data/fortunes`);
+        }
+        
+        function getChatCollectionRef() {
+            return collection(db, `artifacts/${customAppId}/public/data/chat`);
+        }
 
         async function initFirebase() {
             try {
@@ -297,152 +341,418 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
                 
+                // KRİTİK GİRİŞ DÜZELTMESİ: Oturum kontrolü daha sağlam hale getirildi.
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
+                        // KULLANICI OTURUMU AÇIK
                         userId = user.uid;
                         authStatusElement.textContent = `Kimlik ID: ${userId}`;
                         isAuthReady = true;
                         
                         if (!isListenersSetup) {
                             setupFortuneListener();
+                            setupChatBadgeListener(); 
                             isListenersSetup = true;
                         }
 
                         const storedName = localStorage.getItem('userName');
                         if (storedName) {
                             userName = storedName;
-                            showMainScreen();
+                            showMainScreen(); // Kullanıcı adı varsa Ana Ekranı göster
                         } else {
+                            // Anonim oturum var ama isim yok (Giriş ekranında kal)
                             loginDiv.style.display = 'block';
                             mainDiv.style.display = 'none';
                         }
+                        
                     } else {
+                        // OTURUM KAPALI
                         userId = null;
                         isAuthReady = true;
                         loginDiv.style.display = 'block';
                         mainDiv.style.display = 'none';
                     }
+                    errorMessageDiv.classList.add('hidden');
                 });
+                
+                // Anonim girişi başlat
                 await signInAnonymously(auth);
+
             } catch (error) {
-                console.error("Firebase Hatası:", error);
+                console.error("Firebase Başlatma Hatası:", error);
+                errorMessageDiv.textContent = `Hata: Veritabanı bağlantısı kurulamadı. Detay: ${error.message}. Kural/API kontrolü yapın.`;
                 errorMessageDiv.classList.remove('hidden');
             }
         }
 
         function showMainScreen() {
             if (!userName) return; 
-            greetingElement.textContent = `Hoş Geldin, ${userName}!`;
+
+            greetingElement.textContent = `Hoş Geldin, ${userName}! Hadi bir fal çek.`;
             loginDiv.style.display = 'none';
             mainDiv.style.display = 'block';
+            
             spinButton.disabled = !isAuthReady;
+            spinButton.textContent = isAuthReady ? "Fal Çek!" : "Yükleniyor...";
         }
 
         window.login = function() {
-            const val = usernameInput.value.trim();
-            if (val.length < 3) return;
-            userName = val.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
-            localStorage.setItem('userName', userName);
+            const inputName = usernameInput.value.trim();
+
+            if (inputName.length < 3) {
+                loginErrorMsg.textContent = "Kullanıcı adı en az 3 karakter olmalıdır.";
+                loginErrorMsg.classList.remove('hidden');
+                return;
+            }
+            loginErrorMsg.classList.add('hidden');
+
+            userName = toTitleCase(inputName); 
+            localStorage.setItem('userName', userName); 
+
+            requestNotificationPermission();
+
             showMainScreen();
         }
-
+        
         window.logout = function() {
-            localStorage.removeItem('userName');
-            location.reload();
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+
+            localStorage.removeItem('userName'); 
+            userName = "";
+            localStorage.removeItem('currentChatCount'); 
+            localStorage.removeItem('lastSeenChatCount');
+
+            mainDiv.style.display = 'none';
+            loginDiv.style.display = 'block';
+            resultElement.textContent = "Falınız Burada Gözükecek...";
+            resultElement.classList.remove('bg-gray-100', 'border-gray-400');
+            resultElement.classList.add('bg-yellow-100', 'border-yellow-500'); 
+            usernameInput.focus();
         }
 
+        // --- Fal İşlemleri ---
+
         window.spinFal = async function() {
-            if (spinButton.disabled) return;
+            if (fortunes.length === 0 || !db || !isAuthReady || !userId || spinButton.disabled) {
+                if (!isAuthReady) console.error("Firebase Auth hazır değil.");
+                return;
+            }
             spinButton.disabled = true;
+            spinButton.textContent = "Fal Çekiliyor...";
             resultElement.textContent = "Sakız Kağıdınız Açılıyor..";
-            
+            resultElement.classList.remove('bg-yellow-100', 'border-yellow-500'); 
+            resultElement.classList.add('bg-gray-100', 'border-gray-400'); 
             const randomIndex = Math.floor(Math.random() * fortunes.length);
             const fortuneText = fortunes[randomIndex];
             
             setTimeout(async () => {
                 resultElement.textContent = fortuneText;
+                resultElement.classList.remove('bg-gray-100', 'border-gray-400'); 
+                resultElement.classList.add('bg-yellow-100', 'border-yellow-500', 'animate-pulse'); 
                 try {
-                    await addDoc(collection(db, `artifacts/${customAppId}/public/data/fortunes`), {
-                        userId, userName, text: fortuneText, timestamp: new Date().toISOString(), reactedBy: []
+                    await addDoc(getFortuneCollectionRef(), {
+                        userId: userId,
+                        userName: userName,
+                        text: fortuneText,
+                        timestamp: new Date().toISOString(),
+                        reactedBy: [], 
                     });
-                } catch (e) { console.error(e); }
+                } catch (e) {
+                    errorMessageDiv.textContent = `Hata: Fal kaydedilemedi: ${e.message}`;
+                    errorMessageDiv.classList.remove('hidden');
+                }
                 spinButton.disabled = false;
-            }, 1500);
+                spinButton.textContent = "Fal Çek!";
+                setTimeout(() => resultElement.classList.remove('animate-pulse'), 1000); 
+            }, 1500); 
         }
+        
+        window.deleteFortune = async function(docId, ownerId) {
+            if (ownerId !== userId) return; 
 
+            if (!db) return;
+            try {
+                await deleteDoc(doc(getFortuneCollectionRef(), docId));
+            } catch (e) {
+                console.error("Fal silinirken hata:", e);
+            }
+        }
+        
+        window.toggleReaction = async function(docId) {
+            if (!db || !userId) return;
+
+            const falDocRef = doc(getFortuneCollectionRef(), docId);
+
+            try {
+                const snapshot = await getDoc(falDocRef);
+
+                if (snapshot.exists()) {
+                    const data = snapshot.data();
+                    const reactedBy = data.reactedBy || []; 
+
+                    const hasReacted = reactedBy.includes(userId);
+
+                    if (hasReacted) {
+                        await updateDoc(falDocRef, {
+                            reactedBy: arrayRemove(userId)
+                        });
+                    } else {
+                        await updateDoc(falDocRef, {
+                            reactedBy: arrayUnion(userId)
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error("Tepki (Kalp) işlemi hatası:", e);
+            }
+        }
+        
         function setupFortuneListener() {
-            const q = query(collection(db, `artifacts/${customAppId}/public/data/fortunes`), orderBy('timestamp', 'desc'));
+            if (!db || !isAuthReady) return;
+
+            const q = query(getFortuneCollectionRef(), orderBy('timestamp', 'desc'));
+
             onSnapshot(q, (snapshot) => {
                 const history = [];
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    history.push({ id: docSnap.id, ...data });
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    history.push({ 
+                        id: doc.id,
+                        userId: data.userId,
+                        userName: data.userName,
+                        text: data.text,
+                        timestamp: new Date(data.timestamp), 
+                        reactedBy: data.reactedBy || [], 
+                    });
                 });
+                
+                history.sort((a, b) => b.timestamp - a.timestamp); 
+
                 renderHistory(history);
+            }, (error) => {
+                console.error("Firestore Fal Akışı Hatası:", error);
+                errorMessageDiv.textContent = `Hata: Fal akışı yüklenemedi: ${error.message}`;
+                errorMessageDiv.classList.remove('hidden');
+                historyList.innerHTML = `<li class="text-red-500 text-center p-2 bg-red-50 rounded-md">Veritabanı bağlantısı kesildi.</li>`;
             });
         }
 
         function renderHistory(history) {
             historyList.innerHTML = ''; 
 
-            // DOĞUM GÜNÜ ÖZEL FALLARI (SABİT)
-            const specialFortunes = [
-                { user: "Hanımefendim 👑", text: "Mumları üfle dikkat et\nYaş soranı engelle geç\nBugün doğum günün\nTüm nazların serbest" },
-                { user: "Biriciğim 🌸", text: "Pastanın mumu yanıyor\nYeni yaş sana yakışıyor\nGülüşün ortalığı ısıtıyor\nBugün herkes seni konuşuyor" },
-                { user: "Gökyüzüm ✨", text: "Pasta kesildi mum söndü\nGülüşün gönlümündü\nDoğum günün bahaneydi\nGözlerim sana döndü" }
-            ];
-
-            specialFortunes.forEach(s => {
-                historyList.innerHTML += `
-                    <li class="p-3 border-2 border-pink-200 rounded-xl bg-pink-50 mb-3 shadow-sm">
-                        <div class="text-[10px] font-bold text-pink-600 uppercase mb-1 tracking-wider">${s.user}</div>
-                        <p class="text-sm italic text-gray-700 whitespace-pre-line leading-relaxed">${s.text}</p>
-                    </li>`;
-            });
-
-            if (history.length === 0 && specialFortunes.length === 0) {
-                historyList.innerHTML = `<li class="text-gray-500 text-center p-2 bg-gray-50 rounded-md">Henüz çevrilmiş fal yok.</li>`;
+            if (history.length === 0) {
+                historyList.innerHTML = `<li class="text-gray-500 text-center p-2 bg-gray-50 rounded-md">Henüz çevrilmiş fal yok. Hadi ilk falı siz çevirin!</li>`;
                 return;
             }
 
             history.forEach(fal => {
-                const reactedBy = fal.reactedBy || [];
-                const userHasReacted = reactedBy.includes(userId);
-                const heartColor = userHasReacted ? 'text-red-500' : 'text-gray-400';
+                const li = document.createElement('li');
                 
-                historyList.innerHTML += `
-                    <li class="p-3 border border-gray-100 rounded-xl bg-gray-50 mb-2">
-                        <div class="flex justify-between items-start mb-1">
-                            <span class="text-[10px] font-bold text-teal-600 uppercase">${fal.userName}</span>
-                            ${fal.userId === userId ? `<button onclick="deleteFortune('${fal.id}')" class="text-red-300 hover:text-red-500">×</button>` : ''}
-                        </div>
-                        <p class="text-sm text-gray-700 mb-2">${fal.text}</p>
-                        <div class="flex items-center space-x-1">
-                            <button onclick="toggleReaction('${fal.id}')" class="${heartColor} transition p-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                            </button>
-                            <span class="text-sm text-gray-600 font-semibold">${reactedBy.length}</span>
-                        </div>
-                    </li>`;
+                let timeStr = "Bilinmeyen Zaman";
+                try {
+                     timeStr = new Date(fal.timestamp).toLocaleString('tr-TR', { 
+                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' 
+                    });
+                } catch {}
+
+                const isMyFortune = fal.userId === userId;
+                const reactedBy = fal.reactedBy || []; 
+                const reactionCount = reactedBy.length;
+                const userHasReacted = reactedBy.includes(userId);
+                const heartColor = userHasReacted ? 'text-red-500' : 'text-gray-400 hover:text-red-400';
+                
+                const reactionHtml = `
+                    <div class="flex items-center space-x-1">
+                        <button onclick="toggleReaction('${fal.id}')" title="Kalp Bırak" class="${heartColor} transition duration-150 p-1 rounded-full hover:bg-red-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-.318-.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </button>
+                        <span class="text-sm text-gray-600 font-semibold">${reactionCount}</span>
+                    </div>
+                `;
+
+                let deleteButtonsHtml = (isMyFortune) ? `
+                        <button onclick="deleteFortune('${fal.id}', '${fal.userId}')" title="Herkes İçin Kalıcı Sil" class="text-red-400 hover:text-red-600 transition duration-150 p-1.5 rounded-full hover:bg-red-50 ml-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>` : `<div class="w-10 h-7 ml-2"></div>`;
+
+
+                const liClasses = `p-3 bg-white border-l-4 border-blue-400 shadow-sm rounded-lg flex justify-between items-start`;
+                li.className = liClasses;
+                
+                li.innerHTML = `
+                    <div class="flex-grow pr-4">
+                        <p class="text-xs text-gray-700 font-semibold mb-1">${fal.userName} bir fal çekti:</p>
+                        <p class="text-sm font-medium">${fal.text.replace(/\n/g, '<br>')}</p>
+                        <span class="text-xs text-blue-500 whitespace-nowrap">${timeStr}</span>
+                    </div>
+                    <div class="flex flex-col items-end justify-between h-full">
+                        ${deleteButtonsHtml}
+                        <div class="flex-grow"></div> 
+                        <div class="self-end">${reactionHtml}</div>
+                    </div>
+                `;
+                historyList.appendChild(li);
             });
         }
+        
+        function setupChatBadgeListener() {
+            if (!db || !isAuthReady) return;
+            const q = query(getChatCollectionRef(), orderBy('timestamp', 'desc')); 
 
-        window.toggleReaction = async function(docId) {
-            const ref = doc(db, `artifacts/${customAppId}/public/data/fortunes`, docId);
-            const snap = await getDoc(ref);
-            if (snap.exists()) {
-                const reactedBy = snap.data().reactedBy || [];
-                await updateDoc(ref, {
-                    reactedBy: reactedBy.includes(userId) ? arrayRemove(userId) : arrayUnion(userId)
-                });
-            }
-        };
+            onSnapshot(q, (snapshot) => {
+                const totalMessages = snapshot.size;
+                localStorage.setItem('currentChatCount', totalMessages); 
+                
+                if (totalMessages === 0) return;
 
-        window.deleteFortune = async function(docId) {
-            await deleteDoc(doc(db, `artifacts/${customAppId}/public/data/fortunes`, docId));
-        };
+                const lastSeenCount = parseInt(localStorage.getItem('lastSeenChatCount') || 0);
+                const unreadCount = totalMessages - lastSeenCount;
 
-        initFirebase();
+                if (unreadCount > 0) {
+                    chatBadge.textContent = unreadCount;
+                    chatBadge.style.display = 'inline-block';
+                } else {
+                    chatBadge.style.display = 'none';
+                }
+            });
+        }
+        
+        // SOHBET SAYFASINA GEÇİŞ VE SAYACI SIFIRLAMA MANTIĞI
+        document.getElementById('main').addEventListener('click', (event) => {
+             if (event.target.closest('#chat-badge') || event.target.closest('button[onclick*="chat.html"]')) {
+                const currentCount = localStorage.getItem('currentChatCount');
+                if (currentCount) {
+                    localStorage.setItem('lastSeenChatCount', currentCount);
+                }
+                chatBadge.style.display = 'none';
+             }
+        });
+        
+        window.onload = function() {
+            initFirebase();
+            usernameInput.focus(); 
+        }
+
     </script>
 </body>
+<div id="bday-main-wrapper" style="display: none;">
+    <div id="bday-msg-box" style="position: fixed !important; top: 20px !important; left: 0 !important; right: 0 !important; margin: auto !important; width: 310px !important; background: #ffffff !important; border: 3px solid #ff4757 !important; border-radius: 20px !important; padding: 18px !important; text-align: center !important; box-shadow: 0 0 25px rgba(0,0,0,0.4) !important; z-index: 2147483647 !important; pointer-events: auto !important;">
+        
+        <h1 style="font-family: 'Segoe UI', Tahoma, sans-serif !important; font-size: 18px !important; color: #ff4757 !important; margin: 0 0 8px 0 !important; font-weight: bold !important; line-height: 1.3 !important;">
+            İyi Ki Doğdun En Özel En Güzel Tek Varlığııımmm 🎉
+        </h1>
+        
+        <p style="font-family: sans-serif !important; font-size: 13px !important; color: #444 !important; margin: 0 0 15px 0 !important; line-height: 1.5 !important;">
+            Yeni yaşın ve yeni yılın senin kadar harika olsunn biricik hemşirem ❤️
+        </p>
+        
+        <button id="music-control" onclick="handleMusic()" style="background: #ff4757 !important; color: #fff !important; border: none !important; border-radius: 25px !important; padding: 10px !important; width: 100% !important; cursor: pointer !important; font-weight: bold !important; font-size: 13px !important; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3) !important;">▶ Müziği Başlat</button>
+        
+        <span onclick="document.getElementById('bday-main-wrapper').remove()" style="position: absolute !important; top: 5px !important; right: 12px !important; font-size: 24px !important; color: #ccc !important; cursor: pointer !important;">&times;</span>
+    </div>
+
+    <div id="bday-balloons" style="position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; pointer-events: none !important; z-index: 2147483646 !important; overflow: hidden !important;"></div>
+</div>
+
+<audio id="bday-song" loop prefetch="auto">
+    <source src="istanbul.mp3" type="audio/mpeg">
+</audio>
+
+<style>
+    html, body { max-width: 100% !important; overflow-x: hidden !important; width: 100% !important; position: relative !important; }
+
+    .festive-balloon {
+        position: absolute;
+        bottom: -200px;
+        width: 70px;
+        height: 90px;
+        border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+        animation: flySmooth linear forwards;
+        will-change: transform;
+    }
+    .festive-balloon::before {
+        content: ""; position: absolute; top: 10%; left: 20%; width: 20%; height: 25%;
+        background: rgba(255, 255, 255, 0.3); border-radius: 50%;
+    }
+    .festive-balloon::after {
+        content: ""; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+        border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 9px solid currentColor;
+    }
+    .balloon-string {
+        position: absolute; width: 1px; height: 130px; background: rgba(0,0,0,0.1); bottom: -130px; left: 50%;
+    }
+    @keyframes flySmooth {
+        0% { transform: translateY(0) rotate(0deg); }
+        100% { transform: translateY(-140vh) rotate(15deg); }
+    }
+</style>
+
+<script>
+    var myAudio = document.getElementById("bday-song");
+    function handleMusic() {
+        var b = document.getElementById("music-control");
+        if (myAudio.paused) { myAudio.play(); b.innerText = "⏸ Müziği Durdur"; b.style.background = "#333"; }
+        else { myAudio.pause(); b.innerText = "▶ Müziği Başlat"; b.style.background = "#ff4757"; }
+    }
+
+    (function() {
+        const now = new Date();
+        const mm = now.getMonth() + 1;
+        const dd = now.getDate();
+        
+        // Önemli: Test aşamasında true kalsın, yayına alırken false yaparsın.
+        const testMode = true; 
+
+        // 31 Aralık - 26 Ocak Tarih Kontrolü
+        const activeDate = (mm === 12 && dd === 31) || (mm === 1 && dd <= 26);
+
+        if (testMode || activeDate) {
+            window.addEventListener('load', function() {
+                document.getElementById('bday-main-wrapper').style.display = 'block';
+                const area = document.getElementById('bday-balloons');
+                const palete = ['#ff6b81', '#70a1ff', '#7bed9f', '#eccc68', '#ffa502', '#ff4757'];
+
+                function spawn() {
+                    const bln = document.createElement('div');
+                    bln.className = 'festive-balloon';
+                    const str = document.createElement('div');
+                    str.className = 'balloon-string';
+                    bln.appendChild(str);
+
+                    const x = Math.random() * 85;
+                    const dim = 65 + Math.random() * 20;
+                    const speed = 6 + Math.random() * 5;
+                    const col = palete[Math.floor(Math.random() * palete.length)];
+
+                    bln.style.left = x + '%';
+                    bln.style.width = dim + 'px';
+                    bln.style.height = (dim * 1.3) + 'px';
+                    bln.style.backgroundColor = col;
+                    bln.style.color = col; 
+                    bln.style.animationDuration = speed + 's';
+
+                    area.appendChild(bln);
+                    setTimeout(() => bln.remove(), speed * 1000);
+                }
+                setInterval(spawn, 1000);
+            });
+        }
+    })();
+</script>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
