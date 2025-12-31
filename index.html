@@ -661,39 +661,30 @@
         }
 
     </script>
-    <div id="countdown-area" class="z-50 mt-6 p-4 bg-white/80 backdrop-blur-sm rounded-2xl shadow-inner text-center border-t-4 border-pink-400 w-full max-w-[450px]">
-    <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Yeni Yaşa ve Yeni Yıla Son...</p>
-    <div id="timer" class="text-3xl font-black text-pink-600 tracking-tighter">00:00:00</div>
-    <p class="text-sm text-teal-600 font-semibold mt-1">Yaşam sebebimin 19 yaşına girmesine... ❤️</p>
-</div>
+        <div id="countdown-area" style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.9); border-radius: 15px; text-align: center; border-top: 4px solid #f472b6; width: 100%; max-width: 450px; margin-left: auto; margin-right: auto; z-index: 50; box-shadow: 0 -5px 15px rgba(0,0,0,0.05);">
+        <p style="font-size: 10px; color: #6b7280; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px;">Yeni Yaşa ve Yeni Yıla Son...</p>
+        <div id="timer" style="font-size: 35px; font-weight: 900; color: #db2777;">00:00:00</div>
+        <p id="sub-text" style="font-size: 15px; color: #0d9488; font-weight: 600; margin-top: 5px;">Yaşam sebebimin 19 yaşına girmesine... ❤️</p>
+    </div>
 
-<script>
-    function startCountdown() {
-        const timerElement = document.getElementById('timer');
+    <style>
+        @keyframes blinker {
+            50% { opacity: 0; }
+        }
+    </style>
 
-        const updateTimer = () => {
-            const now = new Date();
-            const nextYear = new Date(2026, 0, 1, 0, 0, 0); 
-            const diff = nextYear - now;
-
-            if (diff <= 0) {
-                timerElement.textContent = "HOŞ GELDİN 19!";
-                return;
-            }
-
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const secs = Math.floor((diff % (1000 * 60)) / 1000);
-
-            timerElement.textContent = 
-                `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        };
-
-        setInterval(updateTimer, 1000);
-        updateTimer();
-    }
-    startCountdown();
-</script>
+    <script>
+        function runTimer() {
+            const timerElement = document.getElementById('timer');
+            const subText = document.getElementById('sub-text');
+            
+            // Şu anki zamanı kontrol et (Zaten 2026'ya girdiğimiz için direkt yanacak)
+            timerElement.textContent = "00:00:00";
+            timerElement.style.animation = "blinker 1s linear infinite";
+            subText.innerHTML = "HOŞ GELDİN 19! ❤️";
+        }
+        runTimer();
+    </script>
 </body>
 <div id="bday-main-wrapper" style="display: none;">
     <div id="bday-msg-box" style="position: fixed !important; top: 20px !important; left: 0 !important; right: 0 !important; margin: auto !important; width: 310px !important; background: #ffffff !important; border: 3px solid #ff4757 !important; border-radius: 20px !important; padding: 18px !important; text-align: center !important; box-shadow: 0 0 25px rgba(0,0,0,0.4) !important; z-index: 2147483647 !important; pointer-events: auto !important;">
@@ -800,6 +791,7 @@
     })();
 </script>
 </html>
+
 
 
 
